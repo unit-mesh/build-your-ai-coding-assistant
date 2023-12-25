@@ -68,7 +68,8 @@ PS：这里的 32B 仅作为一个量级表示，因为在更大的模型下，�
 
 #### 重点场景介绍：补全模式
 
-在类似于 GitHub Copilot 的代码补全工具中，通常会分为三种细分模式：
+AI 代码补全能结合 IDE  工具分析代码上下文和程序语言的规则，由  AI 自动生成或建议代码片段。在类似于 GitHub Copilot 的代码补全工具中，
+通常会分为三种细分模式：
 
 **行内补全（Inline）**
 
@@ -122,18 +123,47 @@ fun deleteBlog(id: Long) {
 
 编写本文里的一些相关资源：
 
+-
 Codeium：[Why your AI Code Completion tool needs to Fill in the Middle](https://codeium.com/blog/why-code-completion-needs-fill-in-the-middle)
-
 - [Exploring Custom LLM-Based Coding Assistance Functions](https://transferlab.ai/blog/autodev/)
 
 #### 重点场景介绍：代码解释
+
+代码解释旨在帮助开发者更有效地管理和理解大型代码库。这些助手能够回答关于代码库的问题、 提供文档、搜索代码、识别错误源头、减少代码重复等，
+从而提高开发效率、降低错误率，并减轻开发者的工作负担。
+
+在这个场景下，取决于我们预期的生成质量，通常会由一大一微或一中一微两个模型组成，更大的模型在生成的质量上结果更好。结合，我们在 
+[Chocolate Factory](https://github.com/unit-mesh/chocolate-factory) 工具中的设计经验，通常这样的功能可以分为几步：
+
+- 理解用户意图：借助大模型理解用户意图，将其转换为对应的 AI Agent 能力调用或者 function calling 。
+- 转换意图搜索：借助模型将用户意图转换为对应的代码片段、文档或解释，结合传统搜索、路径搜索和向量化搜索等技术，进行搜索及排序。
+- 输出结果：交由大模型对最后的结果进行总结，输出给用户。
+
+作为一个 RAG 应用，其分为 indexing 和 query 两个部分。
+
+在 indexing 阶段，我们需要将代码库进行索引，并涉及到文本分割、向量化、数据库索引等技术。 
+其中最有挑战的一个内容是拆分，我们参考的折分规则是：https://docs.sweep.dev/blogs/chunking-2m-files 。即：
+
+- 代码的平均 Token 到字符比例约为1:5（300 个 Token），而嵌入模型的 Token 上限为 512 个。
+- 1500 个字符大约对应于 40 行，大致相当于一个小到中等大小的函数或类。
+- 挑战在于尽可能接近 1500 个字符，同时确保分块在语义上相似且相关上下文连接在一起。
+
+在不同的场景下，我们也可以通过不同的方式进行折分，如在 [Chocolate Factory](https://github.com/unit-mesh/chocolate-factory) 
+是通过 AST 进行折分，以保证生成上下文的质量。
+
+在 querying 阶段，需要结合我们一些传统的搜索技术，如：向量化搜索、路径搜索等，以保证搜索的质量。同时，在中文场景下，我们也需要考虑到转换为中文
+的问题，如：将英文转换为中文，以保证搜索的质量。
+
+- 相关工具：[https://github.com/BloopAI/bloop](https://github.com/BloopAI/bloop)
+- 相关资源：
+    - [Prompt 策略：代码库 AI 助手的语义化搜索设计](https://www.phodal.com/blog/prompt-strategy-code-semantic-search/)
 
 #### 其它：日常辅助
 
 对于日常辅助来说，我们也可以通过生成式 AI 来实现，如：自动创建 SQL DDL、自动创建测试用例、自动创建需求等。这些只需要通过自定义提示词，
 结合特定的领域知识，便可以实现，这里不再赘述。
 
-### 底层架构模式
+### 上下文架构模式：相关代码与相似代码
 
 #### 模式：相似代码
 
