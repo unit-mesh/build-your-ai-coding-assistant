@@ -74,7 +74,26 @@ AI 代码补全能结合 IDE 工具分析代码上下文和程序语言的规则
 **行内补全（Inline）**
 
 类似于 FIM（fill in the middle）的模式，补全的内容在当前行中。诸如于：`BlotPost blogpost = new`，补全为：` BlogPost();`，
-以实现：`BlogPost blogpost = new BlogPost();`
+以实现：`BlogPost blogpost = new BlogPost();`。
+
+我们可以 [Deepseek Coder](https://huggingface.co/deepseek-ai/deepseek-coder-6.7b-base) 作为例子，看在这个场景下的效果：
+
+```bash
+<｜fim▁begin｜>def quick_sort(arr):
+    if len(arr) <= 1:
+        return arr
+    pivot = arr[0]
+    left = []
+    right = []
+<｜fim▁hole｜>
+        if arr[i] < pivot:
+            left.append(arr[i])
+        else:
+            right.append(arr[i])
+    return quick_sort(left) + [pivot] + quick_sort(right)<｜fim▁end｜>
+```
+
+在这里，我们就需要结合光标前和光标后的代码。
 
 **块内补全（InBlock）**
 
@@ -177,8 +196,12 @@ fun deleteBlog(id: Long) {
 | 数据结构信息 | AST、CFG          | Similar Chunk |
 | 跨平台能力  | 依赖于 IDE，或者独立的解析器 | 不依赖具体平台       |
 | 上下文质量  | 极高               | 高             |
+| 生成结果   | 极高               | 高             |
+| 构建成本   | 依赖于语言、平台         | 低             |
 
-### 相似上下文架构：GitHub Copilot 案例 
+在支持 IDE 有限时，相关上下文的才会带来更高的**性价高**。
+
+### 相似上下文架构：GitHub Copilot 案例
 
 GitHub Copilot 采用了相似上下文的架构模式，其精略的架构分层如下：
 
@@ -187,7 +210,8 @@ GitHub Copilot 采用了相似上下文的架构模式，其精略的架构分�
 - 上下文构建（Agent）。JSON RPC Server，处理 IDE 的各种变化，对源码进行分析，封装为 “prompt” （疑似） 并发送给服务器。
 - 服务端（Server）。处理 prompt 请求，并交给 LLM 服务端处理。
 
-在 “公开” 的 [Copilot-Explorer](https://github.com/thakkarparth007/copilot-explorer) 项目的研究资料里，可以看到 Prompt 是如何构建出来的。如下是发送到的 prompt 请求：：
+在 “公开” 的 [Copilot-Explorer](https://github.com/thakkarparth007/copilot-explorer) 项目的研究资料里，可以看到 Prompt
+是如何构建出来的。如下是发送到的 prompt 请求：：
 
 ```json
 {
@@ -246,7 +270,8 @@ public class ProductRepository {
 //...
 ```
 
-在计算上下文里，GitHub Copilot 采用的是 [Jaccard 系数](https://en.wikipedia.org/wiki/Jaccard_index) (Jaccard Similarity)，这部分的实现是在 Agent 实现，更详细的逻辑可以参考：
+在计算上下文里，GitHub Copilot 采用的是 [Jaccard 系数](https://en.wikipedia.org/wiki/Jaccard_index) (Jaccard Similarity)
+，这部分的实现是在 Agent 实现，更详细的逻辑可以参考：
 [花了大半个月，我终于逆向分析了Github Copilot](https://github.com/mengjian-github/copilot-analysis)。
 
 相关资源：
@@ -255,15 +280,43 @@ public class ProductRepository {
 
 ### 相关上下文架构：AutoDev 与 JetBrains AI Assistant 案例
 
-相关代码依赖于[静态代码分析](https://en.wikipedia.org/wiki/Static_program_analysis) ，主要借助于代码的结构信息，如：AST、CFG、DDG
-等。
+如上所述，相关代码依赖于**静态代码分析**，主要借助于代码的结构信息，如：AST、CFG、DDG 等。在不同的场景和平台之下，我们可以结合不同的静态代码分析工具，
+如下是常见的一些静态代码分析工具：
 
-相关库资源：
-
-- [TreeSitter](https://tree-sitter.github.io/tree-sitter/)
-- [Intellij PSI](https://plugins.jetbrains.com/docs/intellij/psi.html) （Program Structure Interface）
+- [TreeSitter](https://tree-sitter.github.io/tree-sitter/)，由 GitHub 开发的用于生成高效的自定义语法分析器的框架。
+- [Intellij PSI](https://plugins.jetbrains.com/docs/intellij/psi.html) （Program Structure Interface），由 JetBrains 开发的用于其
+  IDE 的静态代码分析接口。
+- [LSP](https://langserver.org/)（Language Server Protocol），由微软开发的用于 IDE 的通用语言服务器协议。
 - [Chapi](https://github.com/phodal/chapi) (common hierarchical abstract parser implementation)
-- [LSP](https://langserver.org/)（Language Server Protocol）
+  ，由笔者（@phodal）开发的用于通用的静态代码分析工具。
+
+在补全场景下，通过静态代码分析，我们可以得到当前的上下文，如：当前的函数、当前的类、当前的文件等。如下是一个 AutoDev
+的生成单元测试的上下文示例：
+
+```java
+// here are related classes:
+// 'filePath: /Users/phodal/IdeaProjects/untitled/src/main/java/cc/unitmesh/untitled/demo/service/BlogService.java
+// class BlogService {
+//   blogRepository
+//   + public BlogPost createBlog(BlogPost blogDto)
+//   + public BlogPost getBlogById(Long id)
+//   + public BlogPost updateBlog(Long id, BlogPost blogDto)
+//   + public void deleteBlog(Long id)
+// }
+// 'filePath: /Users/phodal/IdeaProjects/untitled/src/main/java/cc/unitmesh/untitled/demo/dto/CreateBlogRequest.java
+// class CreateBlogRequest ...
+// 'filePath: /Users/phodal/IdeaProjects/untitled/src/main/java/cc/unitmesh/untitled/demo/entity/BlogPost.java
+// class BlogPost {...
+@ApiOperation(value = "Create a new blog")
+@PostMapping("/")
+public BlogPost createBlog(@RequestBody CreateBlogRequest request) {
+```
+
+在这个示例中，会分析 `createBlog` 函数的上下文，获取函数的输入和输出类： `CreateBlogRequest`、`BlogPost` 信息，以及
+BlogService 类信息，作为上下文（在注释中提供）提供给模型。在这时，模型会生成更准确的构造函数，以及更准确的测试用例。
+
+由于相关上下文依赖于对不同语言的静态代码分析、不同 IDE 的 API，所以，我们也需要针对不同的语言、不同的 IDE
+进行适配。在构建成本上，相对于相似上下文成本更高。
 
 ## 步骤 1：构建 IDE 插件与度量体系设计
 
@@ -279,6 +332,20 @@ public class ProductRepository {
 ### VSCode 插件
 
 TODO
+
+### 度量体系设计
+
+#### 指标
+
+#### 开发者体验驱动
+
+如微软和 GitHub 所构建的：[DevEx: What Actually Drives Productivity: The developer-centric approach to measuring and improving productivity](https://dl.acm.org/doi/10.1145/3595878)
+
+| -                | 反馈回路                                                           | 认知负荷                                         | 流畅状态                                                |
+|------------------|----------------------------------------------------------------|----------------------------------------------|-----------------------------------------------------|
+| 感知 <br> 人的态度和观点  | • 对自动化测试速度和输出的满意度<br>• 对验证本地更改所需时间的满意度<br>• 对部署更改至生产环境所需时间的满意度 | • 对代码库复杂性的感知<br>• 调试生产系统的易用性<br>• 理解文档的易用性   | • 对专注度和避免中断的感知<br>• 对任务或项目目标清晰度的满意度<br>• 值班对生产的中断感知 |
+| 工作流 <br> 系统和流程行为 | • 生成CI结果所需时间<br>• 代码审查周转时间<br>• 部署交付时间（将更改发布至生产所需时间）           | • 获取技术问题答案所需时间<br>• 部署更改所需的手动步骤<br>• 文档改进的频率 | • 无会议或中断的时间块数量<br>• 未计划任务或请求的频率<br>• 需要团队关注的事故频率    |
+| 绩效指标 <br> 北极星指标  | • 传递软件的整体感知轻松度<br>• 员工参与度或满意度<br>• 感知生产力                       | 同左                                           | 同左                                                  |
 
 ## 步骤 2：模型评估体系与微调试验
 
