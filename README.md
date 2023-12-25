@@ -351,7 +351,7 @@ IDE、编辑器作为开发者的主要工具，其设计和学习成本也相�
 | requestCompletions | `Alt` + `/` | 获取当前的上下文，然后通过模型获取补全结果 |
 | applyInlays        | `TAB`       | 将补全结果展示在 IDE 上        |
 | disposeInlays      | `ESC`       | 取消补全                  |
-| cycleNextInlays    | `Alt` + `[` | 切换到下一个补全结果            |
+| cycleNextInlays    | `Alt` + `]` | 切换到下一个补全结果            |
 | cyclePrevInlays    | `Alt` + `[` | 切换到上一个补全结果            |
 
 **采用自动触发方式**
@@ -395,11 +395,11 @@ class AutoDevEditorListener : EditorFactoryListener {
 
 #### 日常辅助功能开发
 
-结合
+结合 IDE 的接口能力，我们需要添加对应的 Action，以及对应的 Group，以及对应的 Icon。如下是一个 Action 的示例：
 
 `<add-to-group group-id="ShowIntentionsGroup" relative-to-action="ShowIntentionActions" anchor="after"/>`
 
-在不同的 Group中
+如下是 AutoDev 的一些 ActionGroup：
 
 | Group ID               | AI 用途               | Description                                                     |
 |------------------------|---------------------|-----------------------------------------------------------------|
@@ -421,7 +421,7 @@ class AutoDevEditorListener : EditorFactoryListener {
 
 ### 上下文构建
 
-为了简化这个过程，我们使用 UnitEval 来展示如何构建上下文。
+为了简化这个过程，我们使用 Unit Eval 来展示如何构建两种类似的上下文。
 
 #### 静态代码分析
 
@@ -449,7 +449,26 @@ private fun findRelatedCode(container: CodeContainer): List<CodeDataStruct> {
     // 3. convert all similar data structure to uml
     return related
 }
+
+class RelatedCodeStrategyBuilder(private val context: JobContext) : CodeStrategyBuilder {
+    override fun build(): List<TypedIns> {
+        // ...
+        val findRelatedCodeDs = findRelatedCode(container)
+        val relatedCodePath = findRelatedCodeDs.map { it.FilePath }
+        val jaccardSimilarity = SimilarChunker.pathLevelJaccardSimilarity(relatedCodePath, currentPath)
+        val relatedCode = jaccardSimilarity.mapIndexed { index, d ->
+            findRelatedCodeDs[index] to d
+        }.sortedByDescending {
+            it.second
+        }.take(3).map {
+            it.first
+        }
+        //...
+    }
+}
 ```
+
+上述的代码，我们可以通过代码的 Imports 信息作为相关代码的一部分。再通过代码的继承关系，来寻找相关的代码。最后，通过再路径相似性，来寻找最贴近的上下文。
 
 #### 相关代码分析
 
@@ -498,11 +517,11 @@ AI 生成的代码被开发者入库的比例。
 
 ## 步骤 2：模型评估体系与微调试验
 
-评估数据集：
-
-- [HumanEval](https://github.com/openai/human-eval)
+评估数据集：[HumanEval](https://github.com/openai/human-eval)
 
 ### 模型选择与测试
+
+在结合公开 API 的大语言模型之后，我们就可以构建基本的 IDE 功能。随后，应该进一步探索适合于内部的模型，以适合于组织内部的效果。 
 
 #### 模型选择
 
@@ -511,7 +530,9 @@ AI 生成的代码被开发者入库的比例。
 
 #### OpenBayes 平台部署与测试
 
-构建 API，详细见：`code/server` 目录下的相关代码。
+随后，我们需要部署模型，并提供一个对应的 API，这个 API 需要与我们的 IDE 接口保持一致。这里我们采用了 OpenBayes 平台来部署模型。详细见：`code/server` 目录下的相关代码。 
+
+如下是适用于 OpenBayes 的代码，以在后台提供公网 API：
 
 ```python
 if __name__ == "__main__":
@@ -526,36 +547,21 @@ if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8080)
 ```
 
-### 指令生成
+随后，在 IDE 插件中，我们就可以结合他们来测试功能。
 
-```json
-{
-  "instruction": "Write unit test for following code.\n<SomeCode>",
-  "output": "<TestCode>"
-}
-```
+#### 大规模模型部署
 
-或者：
+结合模型量化技术，如 INT4，可以实现 6B 模型在消费级的显卡上进行本地部署。
 
-```json
-{
-  "instruction": "Write unit test for following code.",
-  "input": "<SomeCode>",
-  "output": "<TestCode>"
-}
-```
-
-#### 开源指令
-
-[https://huggingface.co/datasets/ise-uiuc/Magicoder-OSS-Instruct-75K](https://huggingface.co/datasets/ise-uiuc/Magicoder-OSS-Instruct-75K)
-
-#### 数据蒸馏
-
-数据蒸馏。即将大型真实数据集（训练集）作为输入，并输出一个小的合成蒸馏数据集。
+（TODO)
 
 ### 模型微调
 
-有监督微调（SFT）是指采用预先训练好的神经网络模型，并针对你自己的专门任务在少量的监督数据上对其进行重新训练的技术。结合 【[SFT最佳实践](https://cloud.baidu.com/doc/WENXINWORKSHOP/s/Xlkb0e6eu)
+有监督微调（SFT）是指采用预先训练好的神经网络模型，并针对你自己的专门任务在少量的监督数据上对其进行重新训练的技术。
+
+#### 数据驱动的微调方法
+
+结合 【[SFT最佳实践](https://cloud.baidu.com/doc/WENXINWORKSHOP/s/Xlkb0e6eu)
 】中提供的权衡考虑：
 
 - 样本数量少于 1000 且需注重基座模型的通用能力：优先考虑 LoRA。
@@ -574,15 +580,42 @@ if __name__ == "__main__":
 
 TODO
 
-微调参数：
+微调参数，详细见：[Trainer](https://huggingface.co/docs/transformers/v4.36.1/zh/main_classes/trainer)
 
-- [Trainer](https://huggingface.co/docs/transformers/v4.36.1/zh/main_classes/trainer)
+### 数据集构建
 
-### 大规模模型部署
+根据不同的模型，其所需要的指令也是不同的。如下是一个基于 DeepSeek + DeepSpeed 的数据集示例：
 
-结合模型量化技术，如 INT4，可以实现 6B 模型在消费级的显卡上进行本地部署。
+```json
+{
+"instruction": "Write unit test for following code.\n<SomeCode>",
+"output": "<TestCode>"
+}
+```
 
-（TODO)
+下面是 LLaMA 模型的数据集示例：
+
+```json
+{
+  "instruction": "Write unit test for following code.",
+  "input": "<SomeCode>",
+  "output": "<TestCode>"
+}
+```
+
+#### 数据集构建
+
+我们构建 [Unit Eval](https://github.com/unit-mesh/unit-eval) 以生成更适合于 AutoDev 的数据集。
+
+#### 开源数据集
+
+在 GitHub、HuggingFace 等平台上，有一些开源的数据集，如：
+
+- [https://huggingface.co/datasets/ise-uiuc/Magicoder-OSS-Instruct-75K](https://huggingface.co/datasets/ise-uiuc/Magicoder-OSS-Instruct-75K)
+
+#### 数据蒸馏
+
+数据蒸馏。即将大型真实数据集（训练集）作为输入，并输出一个小的合成蒸馏数据集。
 
 ## 步骤 3：围绕意图的数据工程与模型演进
 
