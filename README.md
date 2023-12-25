@@ -521,7 +521,7 @@ AI 生成的代码被开发者入库的比例。
 
 ### 模型选择与测试
 
-在结合公开 API 的大语言模型之后，我们就可以构建基本的 IDE 功能。随后，应该进一步探索适合于内部的模型，以适合于组织内部的效果。 
+在结合公开 API 的大语言模型之后，我们就可以构建基本的 IDE 功能。随后，应该进一步探索适合于内部的模型，以适合于组织内部的效果。
 
 #### 模型选择
 
@@ -530,7 +530,8 @@ AI 生成的代码被开发者入库的比例。
 
 #### OpenBayes 平台部署与测试
 
-随后，我们需要部署模型，并提供一个对应的 API，这个 API 需要与我们的 IDE 接口保持一致。这里我们采用了 OpenBayes 平台来部署模型。详细见：`code/server` 目录下的相关代码。 
+随后，我们需要部署模型，并提供一个对应的 API，这个 API 需要与我们的 IDE 接口保持一致。这里我们采用了 OpenBayes
+平台来部署模型。详细见：`code/server` 目录下的相关代码。
 
 如下是适用于 OpenBayes 的代码，以在后台提供公网 API：
 
@@ -576,6 +577,10 @@ if __name__ == "__main__":
 | 内部代码补全      | 大于 10,000 | 不需要     |
 | IDE + 代码补全  | 大于 10,000 | 需要      |
 
+#### DeepSeek 微调
+
+详细见：[code/finetune/finetune.ipynb](code/finetune/finetune.ipynb)
+
 #### 参数配置
 
 TODO
@@ -588,8 +593,8 @@ TODO
 
 ```json
 {
-"instruction": "Write unit test for following code.\n<SomeCode>",
-"output": "<TestCode>"
+  "instruction": "Write unit test for following code.\n<SomeCode>",
+  "output": "<TestCode>"
 }
 ```
 
@@ -631,6 +636,8 @@ Unit Eval 是一个针对于构建高质量代码微调的开源工具箱。其�
 
 ### IDE 指令设计与演化
 
+AutoDev 早期采用的是 OpenAI API，其模型能力较强，因此在指令设计上比较强大。而当我们需要微调里，我们需要更简单、易于区分的指令来构建。
+
 #### 模板指令
 
 如下是在 AutoDev 中精简化后的 Prompt 示例：
@@ -654,6 +661,16 @@ Unit Eval 是一个针对于构建高质量代码微调的开源工具箱。其�
 
 ### 高质量数据集生成
 
+年初（2023 年 4 月），我们做了一系列的代码微调探索， 在那篇
+《[AI 研发提效的正确姿势：开源 LLM + LoRA](https://www.phodal.com/blog/llm-lora-for-engineering-effectiveness-solution/)
+》里，企业应该开始着力于：
+
+- **规范与流程标准化**
+- **工程化的数据准备**
+- **高质量的脱敏数据**
+
+只有微调是不够的，模型需要与工具紧密相结合。
+
 #### 质量流水线设计示例
 
 ![Code Quality Workflow](https://unitmesh.cc/uniteval/code-quality-workflow.png)
@@ -668,6 +685,8 @@ Unit Eval 是一个针对于构建高质量代码微调的开源工具箱。其�
 而基于 ArchGuard 中所提供的丰富代码质量和架构质量分析能力，诸如 OpenAPI、 SCA（软件依赖分析）能力，我们也在思考未来是否也加入相关的设计。
 
 ## 附：相关资源
+
+TODO
 
 ### 开源 AI 辅助工具
 
