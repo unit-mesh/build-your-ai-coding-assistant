@@ -331,10 +331,58 @@ IDE、编辑器作为开发者的主要工具，其设计和学习成本也
 
 #### 补全模式：Inlay
 
-在自动代码补全上，国内的厂商主要参考的是 GitHub Copilot 的实现，逻辑也不复杂，主要是：
+在自动代码补全上，国内的厂商主要参考的是 GitHub Copilot 的实现，逻辑也不复杂。 
 
-```xml
+**采用快捷键方式触发**
+
+其主要是在 Action 里监听用户的输入，然后:
+
+| 功能                 | 快捷键         | 说明                    |
+|--------------------|-------------|-----------------------|
+| requestCompletions | `Alt` + `/` | 获取当前的上下文，然后通过模型获取补全结果 |
+| applyInlays        | `TAB`       | 将补全结果展示在 IDE 上        |
+| disposeInlays      | `ESC`       | 取消补全                  |
+| cycleNextInlays    | `Alt` + `[` | 切换到下一个补全结果            |
+| cyclePrevInlays    | `Alt` + `[` | 切换到上一个补全结果            |
+
+**采用自动触发方式**
+
+其主要通过 `EditorFactoryListener` 监听用户的输入，然后：根据不同的输入，触发不同的补全结果。核心代码如下：
+
+```kotlin
+class AutoDevEditorListener : EditorFactoryListener {
+  override fun editorCreated(event: EditorFactoryEvent) {
+    //...
+    editor.document.addDocumentListener(AutoDevDocumentListener(editor), editorDisposable)
+    editor.caretModel.addCaretListener(AutoDevCaretListener(editor), editorDisposable)
+    //...
+  }
+
+  class AutoDevCaretListener(val editor: Editor) : CaretListener {
+    override fun caretPositionChanged(event: CaretEvent) {
+      //...
+      val wasTypeOver = TypeOverHandler.getPendingTypeOverAndReset(editor)
+      //...
+      llmInlayManager.disposeInlays(editor, InlayDisposeContext.CaretChange)
+    }
+  }
+
+  class AutoDevDocumentListener(val editor: Editor) : BulkAwareDocumentListener {
+    override fun documentChangedNonBulk(event: DocumentEvent) {
+      //...
+      val llmInlayManager = LLMInlayManager.getInstance()
+      llmInlayManager
+        .editorModified(editor, changeOffset)
+    }
+  }
+}
 ```
+
+再根据不同的输入，触发不同的补全结果，并对结构进行处理。
+
+**渲染补全代码**
+
+随后，我们需要实现一个 Inlay Render，它继承自 `EditorCustomElementRenderer`。
 
 #### 日常辅助功能开发
 
@@ -355,9 +403,10 @@ IDE、编辑器作为开发者的主要工具，其设计和学习成本也
 在编写 ShowIntentionsGroup 时，我们可以参考 AutoDev 的实现来构建对应的 Group：
 
 ```xml
+
 <group id="AutoDevIntentionsActionGroup" class="cc.unitmesh.devti.intentions.IntentionsActionGroup"
        icon="cc.unitmesh.devti.AutoDevIcons.AI_COPILOT" searchable="false">
-  <add-to-group group-id="ShowIntentionsGroup" relative-to-action="ShowIntentionActions" anchor="after"/>
+    <add-to-group group-id="ShowIntentionsGroup" relative-to-action="ShowIntentionActions" anchor="after"/>
 </group>
 ```
 
