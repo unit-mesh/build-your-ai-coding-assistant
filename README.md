@@ -234,38 +234,15 @@ GitHub Copilot 采用了相似上下文的架构模式，其精略的架构分�
 // ...
 // @Component
 // public class ProductService {
-//     @Autowired
-//     private ProductRepository repository;
-// 
-//     public List<Product> getProducts() {
-//         return repository.findAll();
-//     }
-// 
-//     public Product getProductsById(Long productId) {
-//         return repository.findById(productId);
-//     }
-// 
-//     public Product save(Product product) {
-//         return repository.findById(repository.save(product));
-//     }
+//     //...
 // }
 // 
-package cc.unitmesh.demo.infrastructure.repositories;
+package cc.unitmesh.demo.repositories;
 
-import cc.unitmesh.demo.domain.product.Product;
-import com.google.common.collect.Lists;
-import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Optional;
+// ...
 
 @Component
 public class ProductRepository {
-
-    protected static final ModelMapper mapper = new ModelMapper();
-
 //...
 ```
 
