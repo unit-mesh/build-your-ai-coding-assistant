@@ -1,7 +1,7 @@
 remote_theme: pmarsceill/just-the-docs
 
 title: 构建你自己的 AI 辅助编码助手
-description:  《构建你自己的 AI 辅助编码助手》介绍如何 DIY 一个端到端（从 IDE 插件、模型选型、数据集构建到模型微调）的 AI 辅助编程工具，类似于 GitHub Copilot、JetBrains AI Assistant、AutoDev 等。
+description: 《构建你自己的 AI 辅助编码助手》介绍如何 DIY 一个端到端（从 IDE 插件、模型选型、数据集构建到模型微调）的 AI 辅助编程工具，类似于 GitHub Copilot、JetBrains AI Assistant、AutoDev 等。
 
 heading_anchors: true
 
@@ -71,8 +71,8 @@ back_to_top_text: "Back to top"
 
 # Google Analytics Tracking (optional)
 # e.g, UA-1234567-89
-ga_tracking: G-JR0EZ3NLE1
-ga_tracking_anonymize_ip: true # Use GDPR compliant Google Analytics settings (true by default)
+#ga_tracking: G-JR0EZ3NLE1
+#ga_tracking_anonymize_ip: true # Use GDPR compliant Google Analytics settings (true by default)
 
 #url: "https://eval.unitmesh.cc" # the base hostname & protocol for your site
 
