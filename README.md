@@ -421,9 +421,53 @@ class AutoDevEditorListener : EditorFactoryListener {
 
 ### 上下文构建
 
+为了简化这个过程，我们使用 UnitEval 来展示如何构建上下文。
+
 #### 静态代码分析
 
+通过静态代码分析，我们可以得到当前的函数、当前的类、当前的文件等。再结合路径相似性，寻找最贴进的上下文。
+
+```kotlin
+private fun findRelatedCode(container: CodeContainer): List<CodeDataStruct> {
+    // 1. collects all similar data structure by imports if exists in a file tree
+    val byImports = container.Imports
+        .mapNotNull {
+            context.fileTree[it.Source]?.container?.DataStructures
+        }
+        .flatten()
+
+    // 2. collects by inheritance tree for some node in the same package
+    val byInheritance = container.DataStructures
+        .map {
+            (it.Implements + it.Extend).mapNotNull { i ->
+                context.fileTree[i]?.container?.DataStructures
+            }.flatten()
+        }
+        .flatten()
+
+    val related = (byImports + byInheritance).distinctBy { it.NodeName }
+    // 3. convert all similar data structure to uml
+    return related
+}
+```
+
 #### 相关代码分析
+
+先寻找，再通过代码相似性，来寻找相关的代码。核心逻辑所示：
+
+```kotlin
+fun pathLevelJaccardSimilarity(chunks: List<String>, text: String): List<Double> {
+    //...
+}
+fun tokenize(chunk: String): List<String> {
+    return chunk.split(Regex("[^a-zA-Z0-9]")).filter { it.isNotBlank() }
+}
+fun similarityScore(set1: Set<String>, set2: Set<String>): Double {
+    //...
+}
+```
+
+详细见：[SimilarChunker](https://github.com/unit-mesh/unit-eval/blob/master/unit-core/src/main/kotlin/cc/unitmesh/core/intelli/SimilarChunker.kt)
 
 ### VSCode 插件
 
@@ -431,7 +475,15 @@ TODO
 
 ### 度量体系设计
 
-#### 指标
+#### 常用指标
+
+**代码接受率**
+
+AI 生成的代码被开发者接受的比例。
+
+**入库率**
+
+AI 生成的代码被开发者入库的比例。
 
 #### 开发者体验驱动
 
@@ -454,7 +506,12 @@ TODO
 
 #### 模型选择
 
+现有的开源模型里采用 LLaMA 架构相对比较多，并且由于其模型的质量比较高，其生态也相对比较完善。因此，我们也采用 LLaMA
+架构来构建，即：[DeepSeek Coder](https://huggingface.co/deepseek-ai/deepseek-coder-6.7b-base)。
+
 #### OpenBayes 平台部署与测试
+
+构建 API，详细见：`code/server` 目录下的相关代码。
 
 ```python
 if __name__ == "__main__":
@@ -471,11 +528,30 @@ if __name__ == "__main__":
 
 ### 指令生成
 
+```json
+{
+  "instruction": "Write unit test for following code.\n<SomeCode>",
+  "output": "<TestCode>"
+}
+```
+
+或者：
+
+```json
+{
+  "instruction": "Write unit test for following code.",
+  "input": "<SomeCode>",
+  "output": "<TestCode>"
+}
+```
+
 #### 开源指令
 
 [https://huggingface.co/datasets/ise-uiuc/Magicoder-OSS-Instruct-75K](https://huggingface.co/datasets/ise-uiuc/Magicoder-OSS-Instruct-75K)
 
 #### 数据蒸馏
+
+数据蒸馏。即将大型真实数据集（训练集）作为输入，并输出一个小的合成蒸馏数据集。
 
 ### 模型微调
 
@@ -510,6 +586,16 @@ TODO
 
 ## 步骤 3：围绕意图的数据工程与模型演进
 
+![Unit Tools Workflow](https://unitmesh.cc/uniteval/overview.png)
+
+Unit Eval 是一个针对于构建高质量代码微调的开源工具箱。其三个核心设计原则：
+
+- 统一提示词（Prompt）。统一工具-微调-评估底层的提示词。
+- 代码质量管道。诸如于代码复杂性、代码坏味道、测试坏味道、API 设计味道等。
+- 可扩展的质量阈。自定义规则、自定义阈值、自定义质量类型等。
+
+即要解决易于测试的数据集生成，以及易于评估的模型评估问题。
+
 ### IDE 指令设计与演化
 
 #### 模板指令
@@ -535,10 +621,18 @@ TODO
 
 ### 高质量数据集生成
 
-- 统一提示词（Prompt）。统一工具-微调-评估底层的提示词。
-- 代码质量管道。诸如于代码复杂性、代码坏味道、测试坏味道、API 设计味道等。
-- 可扩展的质量阈。自定义规则、自定义阈值、自定义质量类型等。
+#### 质量流水线设计示例
 
+![Code Quality Workflow](https://unitmesh.cc/uniteval/code-quality-workflow.png)
+
+基于 Thoughtworks 在软件工程的丰富经验，以及 Thoughtworks 的架构治理开源工具 [ArchGuard](https://archguard.org/) 作为基础设施。
+在 UnitEval 中，我们也将代码质量的筛选构建成 pipeline 的方式：
+
+- 代码复杂度。在当前的版本设计里，可以直接通过代码复杂度来决定是否放代码文件进入数据库。
+- 不同的坏味道检查类型。诸如于代码坏味道、测试坏味道等。
+- 特定的规则检查。Controller 的 API 设计、Repository 的 SQL 设计 等。
+
+而基于 ArchGuard 中所提供的丰富代码质量和架构质量分析能力，诸如 OpenAPI、 SCA（软件依赖分析）能力，我们也在思考未来是否也加入相关的设计。
 
 ## 附：相关资源
 
