@@ -684,6 +684,128 @@ AutoDev 早期采用的是 OpenAI API，其模型能力较强，因此在指令�
 
 而基于 ArchGuard 中所提供的丰富代码质量和架构质量分析能力，诸如 OpenAPI、 SCA（软件依赖分析）能力，我们也在思考未来是否也加入相关的设计。
 
+```kotlin
+val codeDir = GitUtil
+    .checkoutCode(config.url, config.branch, tempGitDir, config.gitDepth)
+    .toFile().canonicalFile
+
+logger.info("start walk $codeDir")
+
+val languageWorker = LanguageWorker()
+val workerManager = WorkerManager(
+    WorkerContext(
+        config.codeContextStrategies,
+        config.codeQualityTypes,
+        config.insOutputConfig,
+        pureDataFileName = config.pureDataFileName(),
+        config.completionTypes,
+        config.maxCompletionEachFile,
+        config.completionTypeSize,
+        qualityThreshold = InsQualityThreshold(
+            complexity = InsQualityThreshold.MAX_COMPLEXITY,
+            fileSize = InsQualityThreshold.MAX_FILE_SIZE,
+            maxLineInCode = config.maxLineInCode,
+            maxCharInCode = config.maxCharInCode,
+            maxTokenLength = config.maxTokenLength,
+        )
+    )
+)
+workerManager.init(codeDir, config.language)
+```
+
+随后是根据不同的质量门禁，来进行不同的质量检查：
+
+```kotlin
+fun filterByThreshold(job: InstructionFileJob) {
+    val summary = job.fileSummary
+    if (!supportedExtensions.contains(summary.extension)) {
+        return
+    }
+
+    // limit by complexity
+    if (summary.complexity > context.qualityThreshold.complexity) {
+        logger.info("skip file ${summary.location} for complexity ${summary.complexity}")
+        return
+    }
+
+  // like js minified file
+    if (summary.binary || summary.generated || summary.minified) {
+        return
+    }
+
+    // if the file size is too large, we just try 64k
+    if (summary.bytes > context.qualityThreshold.fileSize) {
+        logger.info("skip file ${summary.location} for size ${summary.bytes}")
+        return
+    }
+
+    // limit by token length
+    val encoded = enc.encode(job.code)
+    val length = encoded.size
+    if (length > context.qualityThreshold.maxTokenLength) {
+        logger.info("skip file ${summary.location} for over ${context.qualityThreshold.maxTokenLength} tokens")
+        println("| filename: ${summary.filename} |  tokens: $length | complexity: ${summary.complexity} | code: ${summary.lines} | size: ${summary.bytes} | location: ${summary.location} |")
+        return
+    }
+
+    val language = SupportedLang.from(summary.language)
+    val worker = workers[language] ?: return
+    worker.addJob(job)
+}
+```
+
+在过虑之后，我们就可以由不同语言的 Worker 来进行处理，诸如  JavaWorker、PythonWorker 等。
+
+```kotlin
+val lists = jobs.map { job ->
+    val jobContext = JobContext(
+        job,
+        context.qualityTypes,
+        fileTree,
+        context.insOutputConfig,
+        context.completionTypes,
+        context.maxCompletionInOneFile,
+        project = ProjectContext(
+            compositionDependency = context.compositionDependency,
+        ),
+        context.qualityThreshold
+    )
+
+    context.codeContextStrategies.map { type ->
+        val codeStrategyBuilder = type.builder(jobContext)
+        codeStrategyBuilder.build()
+    }.flatten()
+}.flatten()
+```
+
+根据用户选择的上下文策略，我们就可以构建出不同的上下文，如：相关上下文、相似上下文等
+
+SimilarChunksStrategyBuilder 的主要逻辑：
+
+1. 使用配置中指定的规则检查以识别存在问题的数据结构。
+2. 收集所有具有相似数据结构的数据结构。
+3. 为每个被识别的数据结构中的函数构建完成生成器。
+4. 过滤掉具有空的前置和后置光标的完成生成器。 
+5. 使用JavaSimilarChunker计算块补全的相似块。
+6. 为每个完成生成器创建SimilarChunkIns对象，包括语言、前置光标、相似块、后置光标、输出和类型的相关信息。
+7. 返回生成的SimilarChunkIns对象的列表。
+
+在规则检查里，我们可以通过不同的规则来检查不同的代码质量问题，如：代码坏味道、测试坏味道、API 设计味道等。
+
+```kotlin
+fun create(types: List<CodeQualityType>, thresholds: Map<String, Int> = mapOf()): List<QualityAnalyser> {
+    return types.map { type ->
+        when (type) {
+            CodeQualityType.BadSmell -> BadsmellAnalyser(thresholds)
+            CodeQualityType.TestBadSmell -> TestBadsmellAnalyser(thresholds)
+            CodeQualityType.JavaController -> JavaControllerAnalyser(thresholds)
+            CodeQualityType.JavaRepository -> JavaRepositoryAnalyser(thresholds)
+            CodeQualityType.JavaService -> JavaServiceAnalyser(thresholds)
+        }
+    }
+}
+```
+
 ## 附：相关资源
 
 TODO
