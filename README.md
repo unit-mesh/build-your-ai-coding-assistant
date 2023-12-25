@@ -66,9 +66,72 @@ PS：这里的 32B 仅作为一个量级表示，因为在更大的模型下，�
 - 高响应速度中模型：6B~。用于代码补全、单元测试生成、文档生成、代码审查等场景。
 - 向量化微模型：~100M。用于在 IDE 中进行向量化，诸如：代码相似度、代码相关度等。
 
-#### 补全模式
+#### 重点场景介绍：补全模式
 
-#### 日常辅助
+在类似于 GitHub Copilot 的代码补全工具中，通常会分为三种细分模式：
+
+**行内补全（Inline）**
+
+类似于 FIM（fill in the middle）的模式，补全的内容在当前行中。诸如于：`BlotPost blogpost = new`，补全为：` BlogPost();`，
+以实现：`BlogPost blogpost = new BlogPost();`
+
+**块内补全（InBlock）**
+
+通过上下文学习（In-Context Learning）来实现，补全的内容在当前函数块中。诸如于，原始的代码是：
+
+```kotlin
+fun createBlog(blogDto: CreateBlogDto): BlogPost {
+
+}
+```
+
+补全的代码为：
+
+```kotlin
+    val blogPost = BlogPost(
+    title = blogDto.title,
+    content = blogDto.content,
+    author = blogDto.author
+)
+return blogRepository.save(blogPost)
+```
+
+**块间补全（AfterBlock）**
+
+通过上下文学习（In-Context Learning）来实现，在当前函数块之后补全，如：在当前函数块之后补全一个新的函数。诸如于，原始的代码是：
+
+```kotlin
+fun createBlog(blogDto: CreateBlogDto): BlogPost {
+    //...
+}
+```
+
+补全的代码为：
+
+```kotlin
+fun updateBlog(id: Long, blogDto: CreateBlogDto): BlogPost {
+    //...
+}
+
+fun deleteBlog(id: Long) {
+    //...
+}
+```
+
+在我们构建对应的 AI 补全功能时，也需要考虑应用到对应的模式数据集，以提升补全的质量，提供更好的用户体验。
+
+编写本文里的一些相关资源：
+
+Codeium：[Why your AI Code Completion tool needs to Fill in the Middle](https://codeium.com/blog/why-code-completion-needs-fill-in-the-middle)
+
+- [Exploring Custom LLM-Based Coding Assistance Functions](https://transferlab.ai/blog/autodev/)
+
+#### 重点场景介绍：代码解释
+
+#### 其它：日常辅助
+
+对于日常辅助来说，我们也可以通过生成式 AI 来实现，如：自动创建 SQL DDL、自动创建测试用例、自动创建需求等。这些只需要通过自定义提示词，
+结合特定的领域知识，便可以实现，这里不再赘述。
 
 ### 底层架构模式
 
