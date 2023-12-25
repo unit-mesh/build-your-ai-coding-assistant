@@ -320,14 +320,46 @@ BlogService 类信息，作为上下文（在注释中提供）提供给模型�
 
 ## 步骤 1：构建 IDE 插件与度量体系设计
 
+IDE、编辑器作为开发者的主要工具，其设计和学习成本也
+
 相关资源：
 
-- IDEA
-  插件模板：[https://github.com/JetBrains/intellij-platform-plugin-template](https://github.com/JetBrains/intellij-platform-plugin-template)
-- VSCode
-  插件模板：[https://code.visualstudio.com/api/get-started/your-first-extension](https://code.visualstudio.com/api/get-started/your-first-extension)
+- [IDEA 插件模板](https://github.com/JetBrains/intellij-platform-plugin-template)
+- [VSCode 插件模板](https://code.visualstudio.com/api/get-started/your-first-extension)
 
 ### JetBrains 插件
+
+#### 补全模式：Inlay
+
+在自动代码补全上，国内的厂商主要参考的是 GitHub Copilot 的实现，逻辑也不复杂，主要是：
+
+```xml
+```
+
+#### 日常辅助功能开发
+
+结合
+
+`<add-to-group group-id="ShowIntentionsGroup" relative-to-action="ShowIntentionActions" anchor="after"/>`
+
+在不同的 Group中
+
+| Group ID               | AI 用途               | Description                                                     |
+|------------------------|---------------------|-----------------------------------------------------------------|
+| ShowIntentionsGroup    | 代码重构、代码解释、代码生成、代码测试 | 用于在代码上下文中显示提示，以及通过 `Alt + Enter` 和 macOS 上的 `⌥ + Enter` 快捷键来访问。 |
+| ConsoleEditorPopupMenu | 修复错误                | 在控制台中显示的菜单，如程序运行结构的控制台。                                         |
+| Vcs.MessageActionGroup | 代码信息生成              | 用于在 VCS 中编写提交信息的菜单。                                             |
+| Vcs.Log.ContextMenu    | 代码审查、代码解释、代码生成      | 用于在 VCS 中查看日志的菜单，可实现的功能：AI 检视代码、生成发布日志。                         |
+| EditorPopupMenu        | 皆可                  | 右键菜单，还可添加对应的 ActionGroup                                        |
+
+在编写 ShowIntentionsGroup 时，我们可以参考 AutoDev 的实现来构建对应的 Group：
+
+```xml
+<group id="AutoDevIntentionsActionGroup" class="cc.unitmesh.devti.intentions.IntentionsActionGroup"
+       icon="cc.unitmesh.devti.AutoDevIcons.AI_COPILOT" searchable="false">
+  <add-to-group group-id="ShowIntentionsGroup" relative-to-action="ShowIntentionActions" anchor="after"/>
+</group>
+```
 
 ### VSCode 插件
 
@@ -339,7 +371,8 @@ TODO
 
 #### 开发者体验驱动
 
-如微软和 GitHub 所构建的：[DevEx: What Actually Drives Productivity: The developer-centric approach to measuring and improving productivity](https://dl.acm.org/doi/10.1145/3595878)
+如微软和 GitHub
+所构建的：[DevEx: What Actually Drives Productivity: The developer-centric approach to measuring and improving productivity](https://dl.acm.org/doi/10.1145/3595878)
 
 | -                | 反馈回路                                                           | 认知负荷                                         | 流畅状态                                                |
 |------------------|----------------------------------------------------------------|----------------------------------------------|-----------------------------------------------------|
