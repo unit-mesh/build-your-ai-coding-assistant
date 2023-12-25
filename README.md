@@ -17,8 +17,9 @@
 
 也因此，这个教程也是围绕于这三个步骤展开的。 除此，基于我们的经验，本教程的示例技术栈：
 
-- 插件：Intellij IDEA。
-- 模型：DeepSeek Coder 6.7b。基于 Llama 2 架构，与 Llama 生态兼容
+- 插件：Intellij IDEA。AutoDev 是基于 Intellij IDEA 构建的，并且自带静态代码分析能力，所以基于它作为示例。我们也提供了 VSCode
+  插件的参考架构，你可以在这个基础上进行开发。
+- 模型：[DeepSeek Coder 6.7b](https://huggingface.co/deepseek-ai/deepseek-coder-6.7b-instruct)。基于 Llama 2 架构，与 Llama 生态兼容
 - 微调：Deepspeed + 官方脚本 + Unit Eval。
 - GPU：RTX 4090x2 + [OpenBayes](https://openbayes.com/console/signup?r=phodal_uVxU)。（PS: 用我的专用邀请链接，注册
   OpenBayes，双方各获得 60 分钟 RTX 4090 使用时长，支持累积，永久有效：
@@ -26,13 +27,10 @@
 
 由于，我们在 AI 方面的经验相对比较有限，难免会有一些错误，所以，我们也希望能够与更多的开发者一起，来构建这个开源项目。
 
-## 定义你的 AI 助手
+## 设计与定义你的 AI 助手
 
-根据你的目标和用途，所需要的模型能力也是不同的。
-
-### AI 辅助场景一览
-
-结合 JetBrains 的 2023 《开发者生态系统》报告的[人工智能部分](https://www.jetbrains.com/zh-cn/lp/devecosystem-2023/ai/) ：
+根据你的目标和用途，所需要的模型能力也是不同的。 如在 JetBrains 的 2023 《开发者生态系统》报告的[人工智能部分
+，总结了一些通用的场景：
 
 - 代码自动补全。
 - 解释代码。
@@ -41,11 +39,14 @@
 - 自然语言查询。
 - 其它。诸如于重构、提交信息生成、建模、提交总结等。
 
+而在我们构建 AutoDev 时，也发现了诸如于创建 SQL DDL、生成需求、TDD 等场景。所以。我们提供了自定义场景的能力，以让开发者可以自定义自己的 AI
+能力。
+
 ### 场景驱动架构设计
 
-#### 补全
+#### 补全模式
 
-#### 日常场景
+#### 日常辅助
 
 ### 底层架构模式
 
@@ -84,11 +85,24 @@ TODO
 
 - [HumanEval](https://github.com/openai/human-eval)
 
-微调参数：
+### 模型选择与测试
 
-- [Trainer](https://huggingface.co/docs/transformers/v4.36.1/zh/main_classes/trainer)
+#### 模型选择
 
-### 模型选择
+#### OpenBayes 平台部署与测试
+
+```python
+if __name__ == "__main__":
+    try:
+        meta = requests.get('http://localhost:21999/gear-status', timeout=5).json()
+        url = meta['links'].get('auxiliary')
+        if url:
+            print("打开该链接访问:", url)
+    except Exception:
+        pass
+
+    uvicorn.run(app, host="0.0.0.0", port=8080)
+```
 
 ### 指令生成
 
@@ -119,13 +133,13 @@ TODO
 
 TODO
 
-### 模型部署
+微调参数：
 
-#### 模型部署
+- [Trainer](https://huggingface.co/docs/transformers/v4.36.1/zh/main_classes/trainer)
+
+### 大规模模型部署
 
 结合模型量化技术，如 INT4，可以实现 6B 模型在消费级的显卡上进行本地部署。
-
-#### 大规模模型部署
 
 （TODO)
 
