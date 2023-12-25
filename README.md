@@ -68,7 +68,7 @@ PS：这里的 32B 仅作为一个量级表示，因为在更大的模型下，�
 
 #### 重点场景介绍：补全模式
 
-AI 代码补全能结合 IDE  工具分析代码上下文和程序语言的规则，由  AI 自动生成或建议代码片段。在类似于 GitHub Copilot 的代码补全工具中，
+AI 代码补全能结合 IDE 工具分析代码上下文和程序语言的规则，由 AI 自动生成或建议代码片段。在类似于 GitHub Copilot 的代码补全工具中，
 通常会分为三种细分模式：
 
 **行内补全（Inline）**
@@ -123,8 +123,7 @@ fun deleteBlog(id: Long) {
 
 编写本文里的一些相关资源：
 
--
-Codeium：[Why your AI Code Completion tool needs to Fill in the Middle](https://codeium.com/blog/why-code-completion-needs-fill-in-the-middle)
+- [Why your AI Code Completion tool needs to Fill in the Middle](https://codeium.com/blog/why-code-completion-needs-fill-in-the-middle)
 - [Exploring Custom LLM-Based Coding Assistance Functions](https://transferlab.ai/blog/autodev/)
 
 #### 重点场景介绍：代码解释
@@ -132,7 +131,7 @@ Codeium：[Why your AI Code Completion tool needs to Fill in the Middle](https:/
 代码解释旨在帮助开发者更有效地管理和理解大型代码库。这些助手能够回答关于代码库的问题、 提供文档、搜索代码、识别错误源头、减少代码重复等，
 从而提高开发效率、降低错误率，并减轻开发者的工作负担。
 
-在这个场景下，取决于我们预期的生成质量，通常会由一大一微或一中一微两个模型组成，更大的模型在生成的质量上结果更好。结合，我们在 
+在这个场景下，取决于我们预期的生成质量，通常会由一大一微或一中一微两个模型组成，更大的模型在生成的质量上结果更好。结合，我们在
 [Chocolate Factory](https://github.com/unit-mesh/chocolate-factory) 工具中的设计经验，通常这样的功能可以分为几步：
 
 - 理解用户意图：借助大模型理解用户意图，将其转换为对应的 AI Agent 能力调用或者 function calling 。
@@ -141,14 +140,14 @@ Codeium：[Why your AI Code Completion tool needs to Fill in the Middle](https:/
 
 作为一个 RAG 应用，其分为 indexing 和 query 两个部分。
 
-在 indexing 阶段，我们需要将代码库进行索引，并涉及到文本分割、向量化、数据库索引等技术。 
+在 indexing 阶段，我们需要将代码库进行索引，并涉及到文本分割、向量化、数据库索引等技术。
 其中最有挑战的一个内容是拆分，我们参考的折分规则是：https://docs.sweep.dev/blogs/chunking-2m-files 。即：
 
 - 代码的平均 Token 到字符比例约为1:5（300 个 Token），而嵌入模型的 Token 上限为 512 个。
 - 1500 个字符大约对应于 40 行，大致相当于一个小到中等大小的函数或类。
 - 挑战在于尽可能接近 1500 个字符，同时确保分块在语义上相似且相关上下文连接在一起。
 
-在不同的场景下，我们也可以通过不同的方式进行折分，如在 [Chocolate Factory](https://github.com/unit-mesh/chocolate-factory) 
+在不同的场景下，我们也可以通过不同的方式进行折分，如在 [Chocolate Factory](https://github.com/unit-mesh/chocolate-factory)
 是通过 AST 进行折分，以保证生成上下文的质量。
 
 在 querying 阶段，需要结合我们一些传统的搜索技术，如：向量化搜索、路径搜索等，以保证搜索的质量。同时，在中文场景下，我们也需要考虑到转换为中文
@@ -165,14 +164,30 @@ Codeium：[Why your AI Code Completion tool needs to Fill in the Middle](https:/
 
 ### 上下文架构模式：相关代码与相似代码
 
-#### 模式：相似代码
+除了模型之外，上下文也是影响 AI 辅助能力的重要因素。在我们构建 AutoDev 时，我们也发现了两种不同的上下文模式：
+
+- 相关上下文：基于静态代码分析的上下文生成，可以构建更好质量的上下文，以生成更高质量的代码和测试等，依赖于 IDE 的静态代码分析能力。
+- 相似上下文：基于相似式搜索的上下文，可以构建更多的上下文，以生成更多的代码和测试等，与平台能力无关。
+
+简单对比如下：
+
+|        | 相关上下文            | 相似上下文         |
+|--------|------------------|---------------|
+| 检索技术   | 静态代码分析           | 相似式搜索         |
+| 数据结构信息 | AST、CFG          | Similar Chunk |
+| 跨平台能力  | 依赖于 IDE，或者独立的解析器 | 不依赖具体平台       |
+| 上下文质量  | 极高               | 高             |
+
+#### 模式：相似上下文
 
 - [Jaccard 系数](https://en.wikipedia.org/wiki/Jaccard_index) (Jaccard Similarity)
 
-#### 模式：相关代码
+#### 模式：相关上下文
 
 相关代码依赖于[静态代码分析](https://en.wikipedia.org/wiki/Static_program_analysis) ，主要借助于代码的结构信息，如：AST、CFG、DDG
 等。
+
+相关库资源：
 
 - [TreeSitter](https://tree-sitter.github.io/tree-sitter/)
 - [Intellij PSI](https://plugins.jetbrains.com/docs/intellij/psi.html) （Program Structure Interface）
