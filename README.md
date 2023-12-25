@@ -1,8 +1,21 @@
 # 构建你自己的 AI 辅助编码助手
 
-[AutoDev](https://github.com/unit-mesh/auto-dev)、[Unit Eval](https://github.com/unit-mesh/unit-eval)、[Unit Minions](https://github.com/unit-mesh/unit-minions)
+2023 年，生成式 AI 的火爆，让越来越多的组织开始引入 AI 辅助编码。与在 2021 年发布的 GitHub Copilot 稍有差异的是，代码补全只是重多场景中的一个。
+大量的企业内部在探索结合需求生成完整代码、代码审查等场景，也引入生成式 AI，来提升开发效率。
 
-示例技术栈：
+在这个背景下，我们也开发了一系列的开源工具，以帮助更多的组织构建自己的 AI 辅助编码助手：
+
+- [AutoDev](https://github.com/unit-mesh/auto-dev)，基于 JetBrains 平台的全流程 AI 辅助编码工具。 
+- [Unit Eval](https://github.com/unit-mesh/unit-eval)，代码补全场景下的高质量数据集构建与生成工具。
+- [Unit Minions](https://github.com/unit-mesh/unit-minions)，在需求生成、测试生成等测试场景下，基于数据蒸馏的数据集构建工具。
+
+由于，我们设计 AutoDev 时，各类开源模型也在不断演进。在这个背景下，它的步骤是：
+
+- 构建 IDE 插件与度量体系设计。基于公开模型 API，编写和丰富 IDE 插件功能。
+- 模型评估体系与微调试验。
+- 围绕意图的数据工程与模型演进。
+
+也因此，这个教程也是围绕于这三个步骤展开的。 除此，基于我们的经验，本教程的示例技术栈：
 
 - 插件：Intellij IDEA。
 - 模型：DeepSeek Coder 6.7b。基于 Llama 2 架构，与 Llama 生态兼容
@@ -11,11 +24,7 @@
   OpenBayes，双方各获得 60 分钟 RTX 4090 使用时长，支持累积，永久有效：
   https://openbayes.com/console/signup?r=phodal_uVxU ）
 
-由于，我们设计 AutoDev 时，各类开源模型也在不断演进，所以其步骤是：
-
-- 构建 IDE 插件与度量体系设计。基于公开模型 API，编写和丰富 IDE 插件功能。
-- 模型评估体系与微调试验。
-- 围绕意图的数据工程与模型演进。
+由于，我们在 AI 方面的经验相对比较有限，难免会有一些错误，所以，我们也希望能够与更多的开发者一起，来构建这个开源项目。
 
 ## 定义你的 AI 助手
 
