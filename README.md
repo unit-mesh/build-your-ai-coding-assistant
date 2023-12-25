@@ -7,8 +7,15 @@
 - 插件：Intellij IDEA。
 - 模型：DeepSeek Coder 6.7b。基于 Llama 2 架构，与 Llama 生态兼容
 - 微调：Deepspeed + 官方脚本 + Unit Eval。
-- GPU：RTX 4090x2 + [OpenBayes](https://openbayes.com/console/signup?r=phodal_uVxU)。（ PS: 用我的专用邀请链接，注册 OpenBayes，双方各获得 60 分钟 RTX 4090 使用时长，支持累积，永久有效：
-https://openbayes.com/console/signup?r=phodal_uVxU ）
+- GPU：RTX 4090x2 + [OpenBayes](https://openbayes.com/console/signup?r=phodal_uVxU)。（PS: 用我的专用邀请链接，注册
+  OpenBayes，双方各获得 60 分钟 RTX 4090 使用时长，支持累积，永久有效：
+  https://openbayes.com/console/signup?r=phodal_uVxU ）
+
+由于，我们设计 AutoDev 时，各类开源模型也在不断演进，所以其步骤是：
+
+- 构建 IDE 插件与度量体系设计。基于公开模型 API，编写和丰富 IDE 插件功能。
+- 模型评估体系与微调试验。
+- 围绕意图的数据工程与模型演进。
 
 ## 定义你的 AI 助手
 
@@ -39,19 +46,22 @@ https://openbayes.com/console/signup?r=phodal_uVxU ）
 
 #### 模式：相关代码
 
-相关代码依赖于[静态代码分析](https://en.wikipedia.org/wiki/Static_program_analysis) ，主要借助于代码的结构信息，如：AST、CFG、DDG 等。
+相关代码依赖于[静态代码分析](https://en.wikipedia.org/wiki/Static_program_analysis) ，主要借助于代码的结构信息，如：AST、CFG、DDG
+等。
 
 - [TreeSitter](https://tree-sitter.github.io/tree-sitter/)
 - [Intellij PSI](https://plugins.jetbrains.com/docs/intellij/psi.html) （Program Structure Interface）
 - [Chapi](https://github.com/phodal/chapi) (common hierarchical abstract parser implementation)
 - [LSP](https://langserver.org/)（Language Server Protocol）
 
-## 插件
+## 步骤 1：构建 IDE 插件与度量体系设计
 
 相关资源：
 
-- IDEA 插件模板：[https://github.com/JetBrains/intellij-platform-plugin-template](https://github.com/JetBrains/intellij-platform-plugin-template)
-- VSCode 插件模板：[https://code.visualstudio.com/api/get-started/your-first-extension](https://code.visualstudio.com/api/get-started/your-first-extension)
+- IDEA
+  插件模板：[https://github.com/JetBrains/intellij-platform-plugin-template](https://github.com/JetBrains/intellij-platform-plugin-template)
+- VSCode
+  插件模板：[https://code.visualstudio.com/api/get-started/your-first-extension](https://code.visualstudio.com/api/get-started/your-first-extension)
 
 ### JetBrains 插件
 
@@ -59,9 +69,15 @@ https://openbayes.com/console/signup?r=phodal_uVxU ）
 
 TODO
 
-## 模型评估与服务
+## 步骤 2：模型评估体系与微调试验
+
+评估数据集：
 
 - [HumanEval](https://github.com/openai/human-eval)
+
+微调参数：
+
+- [Trainer](https://huggingface.co/docs/transformers/v4.36.1/zh/main_classes/trainer)
 
 ### 模型选择
 
@@ -83,7 +99,6 @@ TODO
 - 如果特定任务数据样本较多且主要注重这些任务效果：使用 SFT。
 - 如果希望结合两者优势：将特定任务的数据与通用任务数据进行混合配比后，再使用这些训练方法能得到更好的效果。
 
-
 #### 参数配置
 
 TODO
@@ -98,7 +113,7 @@ TODO
 
 （TODO)
 
-## 围绕意图的模型微调
+## 步骤 3：围绕意图的数据工程与模型演进
 
 ### IDE 指令设计
 
