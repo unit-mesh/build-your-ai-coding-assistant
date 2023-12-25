@@ -510,11 +510,37 @@ TODO
 
 ## 步骤 3：围绕意图的数据工程与模型演进
 
-### IDE 指令设计
+### IDE 指令设计与演化
+
+#### 模板指令
+
+如下是在 AutoDev 中精简化后的 Prompt 示例：
+
+    Write unit test for following code.
+    
+    ${context.testFramework}
+    ${context.coreFramework}
+    ${context.testSpec}
+    
+    ```${context.language}
+    ${context.related_model} 
+    ${context.selection}
+    ```
+
+其中包含了：
+
+- 技术栈上下文
+- 测试技术栈上下文
+- 代码块（类、函数）的输入和输出信息
 
 ### 高质量数据集生成
 
-## 相关资源
+- 统一提示词（Prompt）。统一工具-微调-评估底层的提示词。
+- 代码质量管道。诸如于代码复杂性、代码坏味道、测试坏味道、API 设计味道等。
+- 可扩展的质量阈。自定义规则、自定义阈值、自定义质量类型等。
+
+
+## 附：相关资源
 
 ### 开源 AI 辅助工具
 
