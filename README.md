@@ -162,7 +162,7 @@ fun deleteBlog(id: Long) {
 对于日常辅助来说，我们也可以通过生成式 AI 来实现，如：自动创建 SQL DDL、自动创建测试用例、自动创建需求等。这些只需要通过自定义提示词，
 结合特定的领域知识，便可以实现，这里不再赘述。
 
-### 上下文架构模式：相关代码与相似代码
+## 架构设计：上下文工程
 
 除了模型之外，上下文也是影响 AI 辅助能力的重要因素。在我们构建 AutoDev 时，我们也发现了两种不同的上下文模式：
 
@@ -178,11 +178,105 @@ fun deleteBlog(id: Long) {
 | 跨平台能力  | 依赖于 IDE，或者独立的解析器 | 不依赖具体平台       |
 | 上下文质量  | 极高               | 高             |
 
-#### 模式：相似上下文
+### 相似上下文架构：GitHub Copilot 案例 
 
-- [Jaccard 系数](https://en.wikipedia.org/wiki/Jaccard_index) (Jaccard Similarity)
+GitHub Copilot 采用了相似上下文的架构模式，其精略的架构分层如下：
 
-#### 模式：相关上下文
+- 监听用户操作（IDE API ）。监听用户的 Run Action、快捷键、UI 操作、输入等，以及最近的文档操作历史（20 个文件）。
+- IDE 胶水层（Plugin）。作为 IDE 与底层 Agent 的胶水层，处理输入和输出。
+- 上下文构建（Agent）。JSON RPC Server，处理 IDE 的各种变化，对源码进行分析，封装为 “prompt” （疑似） 并发送给服务器。
+- 服务端（Server）。处理 prompt 请求，并交给 LLM 服务端处理。
+
+在 “公开” 的 [Copilot-Explorer](https://github.com/thakkarparth007/copilot-explorer) 项目的研究资料里，可以看到 Prompt 是如何构建出来的。如下是发送到的 prompt 请求：：
+
+```json
+{
+  "prefix": "# Path: codeviz\\app.py\n#....",
+  "suffix": "if __name__ == '__main__':\r\n    app.run(debug=True)",
+  "isFimEnabled": true,
+  "promptElementRanges": [
+    {
+      "kind": "PathMarker",
+      "start": 0,
+      "end": 23
+    },
+    {
+      "kind": "SimilarFile",
+      "start": 23,
+      "end": 2219
+    },
+    {
+      "kind": "BeforeCursor",
+      "start": 2219,
+      "end": 3142
+    }
+  ]
+}
+```
+
+其中：
+
+- 用于构建 prompt 的 `prefix` 部分，是由 promptElements
+  构建了，其中包含了：`BeforeCursor`, `AfterCursor`, `SimilarFile`, `ImportedFile`, `LanguageMarker`, `PathMarker`, `RetrievalSnippet`
+  等类型。从几种 `PromptElementKind` 的名称，我们也可以看出其真正的含义。
+- 用于构建 prompt 的 `suffix` 部分，则是由光标所在的部分决定的，根据 tokens 的上限（2048 ）去计算还有多少位置放下。而这里的
+  Token 计算则是真正的 LLM 的 token 计算，在 Copilot 里是通过 Cushman002 计算的，诸如于中文的字符的 token
+  长度是不一样的，如： `{ context: "console.log('你好，世界')", lineCount: 1, tokenLength: 30 }` ，其中 context 中的内容的
+  length 为 20，但是 tokenLength 是 30，中文字符共 5 个（包含 `，` ）的长度，单个字符占的 token 就是 3。
+
+如下是一个更详细的 Java 应用的上下文示例：
+
+```java
+// Path: src/main/cc/unitmesh/demo/infrastructure/repositories/ProductRepository.java
+// Compare this snippet from src/main/cc/unitmesh/demo/domain/product/Product.java:
+// ....
+// Compare this snippet from src/main/cc/unitmesh/demo/application/ProductService.java:
+// ...
+// @Component
+// public class ProductService {
+//     @Autowired
+//     private ProductRepository repository;
+// 
+//     public List<Product> getProducts() {
+//         return repository.findAll();
+//     }
+// 
+//     public Product getProductsById(Long productId) {
+//         return repository.findById(productId);
+//     }
+// 
+//     public Product save(Product product) {
+//         return repository.findById(repository.save(product));
+//     }
+// }
+// 
+package cc.unitmesh.demo.infrastructure.repositories;
+
+import cc.unitmesh.demo.domain.product.Product;
+import com.google.common.collect.Lists;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Optional;
+
+@Component
+public class ProductRepository {
+
+    protected static final ModelMapper mapper = new ModelMapper();
+
+//...
+```
+
+在计算上下文里，GitHub Copilot 采用的是 [Jaccard 系数](https://en.wikipedia.org/wiki/Jaccard_index) (Jaccard Similarity)，这部分的实现是在 Agent 实现，更详细的逻辑可以参考：
+[花了大半个月，我终于逆向分析了Github Copilot](https://github.com/mengjian-github/copilot-analysis)。
+
+相关资源：
+
+- [上下文工程：基于 Github Copilot 的实时能力分析与思考](https://www.phodal.com/blog/llm-context-engineering/)
+
+### 相关上下文架构：AutoDev 与 JetBrains AI Assistant 案例
 
 相关代码依赖于[静态代码分析](https://en.wikipedia.org/wiki/Static_program_analysis) ，主要借助于代码的结构信息，如：AST、CFG、DDG
 等。
