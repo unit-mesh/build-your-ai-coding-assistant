@@ -320,18 +320,27 @@ BlogService 类信息，作为上下文（在注释中提供）提供给模型�
 
 ## 步骤 1：构建 IDE 插件与度量体系设计
 
-IDE、编辑器作为开发者的主要工具，其设计和学习成本也
-
-相关资源：
+IDE、编辑器作为开发者的主要工具，其设计和学习成本也相对比较高。首先，我们可以用官方提供的模板生成：
 
 - [IDEA 插件模板](https://github.com/JetBrains/intellij-platform-plugin-template)
 - [VSCode 插件模板](https://code.visualstudio.com/api/get-started/your-first-extension)
 
+然后，再往上添加功能（是不是很简单），当然不是。以下是一些可以参考的 IDEA 插件资源：
+
+- [Intellij Community 版本源码](https://github.com/JetBrains/intellij-community)
+- [IntelliJ SDK Docs Code Samples](https://github.com/JetBrains/intellij-sdk-code-samples)
+- [Intellij Rust](https://github.com/intellij-rust/intellij-rust)
+
+当然了，更合适的是参考[AutoDev 插件](https://github.com/unit-mesh/auto-dev)。
+
 ### JetBrains 插件
+
+对于 IDEA 插件实现来说，主要是通过 Action 和 Listener 来实现的，只需要在 `plugin.xml` 中注册即可。
+详细可以参考官方文档：[IntelliJ Platform Plugin SDK](https://plugins.jetbrains.com/docs/intellij/welcome.html)
 
 #### 补全模式：Inlay
 
-在自动代码补全上，国内的厂商主要参考的是 GitHub Copilot 的实现，逻辑也不复杂。 
+在自动代码补全上，国内的厂商主要参考的是 GitHub Copilot 的实现，逻辑也不复杂。
 
 **采用快捷键方式触发**
 
@@ -351,30 +360,30 @@ IDE、编辑器作为开发者的主要工具，其设计和学习成本也
 
 ```kotlin
 class AutoDevEditorListener : EditorFactoryListener {
-  override fun editorCreated(event: EditorFactoryEvent) {
-    //...
-    editor.document.addDocumentListener(AutoDevDocumentListener(editor), editorDisposable)
-    editor.caretModel.addCaretListener(AutoDevCaretListener(editor), editorDisposable)
-    //...
-  }
-
-  class AutoDevCaretListener(val editor: Editor) : CaretListener {
-    override fun caretPositionChanged(event: CaretEvent) {
-      //...
-      val wasTypeOver = TypeOverHandler.getPendingTypeOverAndReset(editor)
-      //...
-      llmInlayManager.disposeInlays(editor, InlayDisposeContext.CaretChange)
+    override fun editorCreated(event: EditorFactoryEvent) {
+        //...
+        editor.document.addDocumentListener(AutoDevDocumentListener(editor), editorDisposable)
+        editor.caretModel.addCaretListener(AutoDevCaretListener(editor), editorDisposable)
+        //...
     }
-  }
 
-  class AutoDevDocumentListener(val editor: Editor) : BulkAwareDocumentListener {
-    override fun documentChangedNonBulk(event: DocumentEvent) {
-      //...
-      val llmInlayManager = LLMInlayManager.getInstance()
-      llmInlayManager
-        .editorModified(editor, changeOffset)
+    class AutoDevCaretListener(val editor: Editor) : CaretListener {
+        override fun caretPositionChanged(event: CaretEvent) {
+            //...
+            val wasTypeOver = TypeOverHandler.getPendingTypeOverAndReset(editor)
+            //...
+            llmInlayManager.disposeInlays(editor, InlayDisposeContext.CaretChange)
+        }
     }
-  }
+
+    class AutoDevDocumentListener(val editor: Editor) : BulkAwareDocumentListener {
+        override fun documentChangedNonBulk(event: DocumentEvent) {
+            //...
+            val llmInlayManager = LLMInlayManager.getInstance()
+            llmInlayManager
+                .editorModified(editor, changeOffset)
+        }
+    }
 }
 ```
 
@@ -409,6 +418,12 @@ class AutoDevEditorListener : EditorFactoryListener {
     <add-to-group group-id="ShowIntentionsGroup" relative-to-action="ShowIntentionActions" anchor="after"/>
 </group>
 ```
+
+### 上下文构建
+
+#### 静态代码分析
+
+#### 相关代码分析
 
 ### VSCode 插件
 
