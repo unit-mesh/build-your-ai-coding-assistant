@@ -1,5 +1,9 @@
 # 构建你自己的 AI 辅助编码助手
 
+<p align="center">
+  <img src="images/cover.jpeg" width="100%" height="100%"  alt="Cover" />
+</p>
+
 2023 年，生成式 AI 的火爆，让越来越多的组织开始引入 AI 辅助编码。与在 2021 年发布的 GitHub Copilot 稍有差异的是，代码补全只是重多场景中的一个。
 大量的企业内部在探索结合需求生成完整代码、代码审查等场景，也引入生成式 AI，来提升开发效率。
 
