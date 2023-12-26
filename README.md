@@ -704,6 +704,11 @@ AI 生成的代码被开发者入库的比例。
 随后，我们需要部署模型，并提供一个对应的 API，这个 API 需要与我们的 IDE 接口保持一致。这里我们采用了 OpenBayes
 平台来部署模型。详细见：`code/server` 目录下的相关代码。
 
+```bash
+pip install -r requirements.txt
+python server-python38.py
+```
+
 如下是适用于 OpenBayes 的代码，以在后台提供公网 API：
 
 ```python
@@ -748,15 +753,23 @@ if __name__ == "__main__":
 | 内部代码补全      | 大于 10,000 | 不需要     |
 | IDE + 代码补全  | 大于 10,000 | 需要      |
 
-#### DeepSeek 微调
+#### OpenBayes + DeepSeek 微调
 
-详细见：[code/finetune/finetune.ipynb](code/finetune/finetune.ipynb)
+在这里我们使用的是，以及 DeepSeek 官方提供的脚本来进行微调。
 
-#### 参数配置
+- 云 GPU： [OpenBayes](https://openbayes.com/console/signup?r=phodal_uVxU)
+- GPU 算力：4090x2 （目测和微调参数有关，但是我试了几次 4090 还是不行）
+- 微调脚本：[https://github.com/deepseek-ai/DeepSeek-Coder](https://github.com/deepseek-ai/DeepSeek-Coder)
+- 数据集：6000
 
-TODO
+我在 OpenBayes 上传了的 DeepSeek 模型：[OpenBayes deepseek-coder-6.7b-instruct](https://openbayes.com/console/phodal/models/zV91IERweWd/1/overview)，你可以在创建时直接使用这个模型。
 
-微调参数，详细见：[Trainer](https://huggingface.co/docs/transformers/v4.36.1/zh/main_classes/trainer)
+![Finetune Model Choice](images/finetune-model-choice.jpg)
+
+其它：
+
+- 详细的 Notebook 见：[code/finetune/finetune.ipynb](code/finetune/finetune.ipynb)
+- 微调参数，详细见：[Trainer](https://huggingface.co/docs/transformers/v4.36.1/zh/main_classes/trainer)
 
 ### 数据集构建
 
