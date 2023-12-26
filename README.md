@@ -30,7 +30,7 @@
 
 由于，我们在 AI 方面的经验相对比较有限，难免会有一些错误，所以，我们也希望能够与更多的开发者一起，来构建这个开源项目。
 
-## 设计与定义你的 AI 助手
+## 功能设计：定义你的 AI 助手
 
 结合 JetBrains 2023《开发者生态系统》报告的[人工智能部分](https://www.jetbrains.com/zh-cn/lp/devecosystem-2023/ai/)
 ，我们可以总结出一些通用的场景，这些场景反映了在开发过程中生成式 AI 可以发挥作用的领域。以下是一些主要的场景：
@@ -337,8 +337,39 @@ IDE、编辑器作为开发者的主要工具，其设计和学习成本也相�
 
 ### JetBrains 插件
 
+可以直接使用官方的模板来生成对应的插件：[https://github.com/JetBrains/intellij-platform-plugin-template](https://github.com/JetBrains/intellij-platform-plugin-template)
+
+![Use this template](https://github.com/JetBrains/intellij-platform-plugin-template/blob/main/.github/readme/use-this-template.png)
+
 对于 IDEA 插件实现来说，主要是通过 Action 和 Listener 来实现的，只需要在 `plugin.xml` 中注册即可。
 详细可以参考官方文档：[IntelliJ Platform Plugin SDK](https://plugins.jetbrains.com/docs/intellij/welcome.html)
+
+#### 版本兼容与兼容架构
+
+由于我们前期未 AutoDev 考虑到对 IDE 版本的兼容问题，后期为了兼容旧版本的 IDE，我们需要对插件进行兼容性处理。所以，如官方文档：[Build Number Ranges](https://plugins.jetbrains.com/docs/intellij/build-number-ranges.html)
+中所描述，我们可以看到不同版本，对于 JDK 的要求是不一样的，如下是不同版本的要求：
+
+| Branch number                                                   | IntelliJ Platform version                                                                                                            |
+|-----------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|
+| [233](https://github.com/JetBrains/intellij-community/tree/233) | 2023.3                                                                                                                               |
+| [232](https://github.com/JetBrains/intellij-community/tree/232) | 2023.2                                                                                                                               |
+| [231](https://github.com/JetBrains/intellij-community/tree/231) | 2023.1                                                                                                                               |
+| [223](https://github.com/JetBrains/intellij-community/tree/223) | 2022.3                                                                                                                               |
+| [222](https://github.com/JetBrains/intellij-community/tree/222) | 2022.2 NOTE Java 17 is now required ([blog post](https://blog.jetbrains.com/platform/2022/08/intellij-project-migrates-to-java-17/)) |
+| [221](https://github.com/JetBrains/intellij-community/tree/221) | 2022.1                                                                                                                               |
+| [213](https://github.com/JetBrains/intellij-community/tree/213) | 2021.3                                                                                                                               |
+| [212](https://github.com/JetBrains/intellij-community/tree/212) | 2021.2                                                                                                                               |
+| [211](https://github.com/JetBrains/intellij-community/tree/211) | 2021.1                                                                                                                               |
+| [203](https://github.com/JetBrains/intellij-community/tree/203) | 2020.3 NOTE Java 11 is now required ([blog post](https://blog.jetbrains.com/platform/2020/09/intellij-project-migrates-to-java-11/)) |
+
+并配置到 `gradle.properties` 中：
+
+```properties
+pluginSinceBuild = 223
+pluginUntilBuild = 233.*
+```
+
+后续配置兼容性比较麻烦，可以参考 AutoDev 的设计。
 
 #### 补全模式：Inlay
 
