@@ -79,7 +79,7 @@ back_to_top_text: "Back to top"
 # Aux links for the upper right navigation
 aux_links:
   "View in on GitHub":
-    - "//github.com/phodal/build-you-own-ai-coding-assistant"
+    - "//github.com/phodal/build-ai-coding-assistant"
 
 # Makes Aux links open in a new tab. Default is false
 aux_links_new_tab: true
