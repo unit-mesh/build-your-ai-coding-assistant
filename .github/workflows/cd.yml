@@ -1,0 +1,27 @@
+name: CD
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  convert_via_pandoc:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: create file list
+        id: files_list
+        run: |
+          echo "files=$(printf '"%s" ' *.md)" > $GITHUB_OUTPUT
+      - uses: docker://pandoc/latex:2.9
+        with:
+          args: --output=output/build-your-ai-coding-assistant.pdf ${{ steps.files_list.outputs.files }}
+      - uses: actions/upload-artifact@v3
+        with:
+          name: output
+          path: output
