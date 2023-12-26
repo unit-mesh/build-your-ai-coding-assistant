@@ -659,6 +659,16 @@ AutoDev 早期采用的是 OpenAI API，其模型能力较强，因此在指令�
 - 测试技术栈上下文
 - 代码块（类、函数）的输入和输出信息
 
+而这个模板指令，也是我们在 Unit Eval 中所采用的指令。
+
+#### 统一指令模板
+
+为了实现统一的指令模板，我们引入了 Apache Velocity 模板引擎来实现，并通过 Chocolate Factory 实现底层的通用逻辑：
+
+- 工具侧。在 IDE 插件中，直接通过 Velocity 模板引擎、基于 Chocolate Factory 来实现指令的生成。
+- 数据集成。在 Unit Eval 中，生成适用于模板的数据集。
+- 结果评估。基于 Chocolate Factory 的实现，对模板的结果进行评估。
+
 ### 高质量数据集生成
 
 年初（2023 年 4 月），我们做了一系列的代码微调探索， 在那篇
@@ -683,6 +693,10 @@ AutoDev 早期采用的是 OpenAI API，其模型能力较强，因此在指令�
 - 特定的规则检查。Controller 的 API 设计、Repository 的 SQL 设计 等。
 
 而基于 ArchGuard 中所提供的丰富代码质量和架构质量分析能力，诸如 OpenAPI、 SCA（软件依赖分析）能力，我们也在思考未来是否也加入相关的设计。
+
+#### 实现高质量数据集生成
+
+如下是 Unit Eval 0.3.0 的主要代码逻辑：
 
 ```kotlin
 val codeDir = GitUtil
@@ -780,7 +794,9 @@ val lists = jobs.map { job ->
 
 根据用户选择的上下文策略，我们就可以构建出不同的上下文，如：相关上下文、相似上下文等
 
-SimilarChunksStrategyBuilder 的主要逻辑：
+#### 在上下文策略中检查代码质量
+
+SimilarChunksStrategyBuilder 主要逻辑如下
 
 1. 使用配置中指定的规则检查以识别存在问题的数据结构。
 2. 收集所有具有相似数据结构的数据结构。
