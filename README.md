@@ -547,6 +547,122 @@ fun similarityScore(set1: Set<String>, set2: Set<String>): Double {
 
 TODO
 
+#### TreeSitter
+
+> TreeSitter 是一个用于生成高效的自定义语法分析器的框架，由 GitHub 开发。它使用 LR（1）解析器，这意味着它可以在 O（n）时间内解析任何语言，而不是
+O（n²）时间。它还使用了一种称为“语法树的重用”的技术，该技术使其能够在不重新解析整个文件的情况下更新语法树。
+
+由于 TreeSitter 已经提供了多语言的支持，你可以使用 Node.js、Rust 等语言来构建对应的插件。详细见：[TreeSitter](https://tree-sitter.github.io/tree-sitter/)。
+
+根据我们的意图不同，使用 TreeSitter 也有不同的方式：
+
+**解析 Symbol**
+
+在代码自然语言搜索引擎 [Bloop](https://github.com/BloopAI/bloop) 中，我们使用 TreeSitter 来解析 Symbol，以实现更好的搜索质量。
+
+```scheme
+;; methods
+(method_declaration 
+  name: (identifier) @hoist.definition.method)
+```
+
+随后，根据不同的类型来决定如何显示：
+
+```rust
+pub static JAVA: TSLanguageConfig = TSLanguageConfig {
+    language_ids: &["Java"],
+    file_extensions: &["java"],
+    grammar: tree_sitter_java::language,
+    scope_query: MemoizedQuery::new(include_str!("./scopes.scm")),
+    hoverable_query: MemoizedQuery::new(
+        r#"
+        [(identifier)
+         (type_identifier)] @hoverable
+        "#,
+    ),
+    namespaces: &[&[
+        // variables
+        "local",
+        // functions
+        "method",
+        // namespacing, modules
+        "package",
+        "module",
+        // types
+        "class",
+        "enum",
+        "enumConstant",
+        "record",
+        "interface",
+        "typedef",
+        // misc.
+        "label",
+    ]],
+};
+```
+
+**Chunk 代码**
+
+如下是 [Improving LlamaIndex’s Code Chunker
+by Cleaning Tree-Sitter CSTs](https://docs.sweep.dev/blogs/chunking-improvements) 中的
+TreeSitter 的使用方式：
+
+```python
+from tree_sitter import Tree
+ 
+def chunker(
+	tree: Tree,
+	source_code: bytes,
+	MAX_CHARS=512 * 3,
+	coalesce=50 # Any chunk less than 50 characters long gets coalesced with the next chunk
+) -> list[Span]:
+ 
+    # 1. Recursively form chunks based on the last post (https://docs.sweep.dev/blogs/chunking-2m-files)
+    def chunk_node(node: Node) -> list[Span]:
+        chunks: list[Span] = []
+        current_chunk: Span = Span(node.start_byte, node.start_byte)
+        node_children = node.children
+        for child in node_children:
+            if child.end_byte - child.start_byte > MAX_CHARS:
+                chunks.append(current_chunk)
+                current_chunk = Span(child.end_byte, child.end_byte)
+                chunks.extend(chunk_node(child))
+            elif child.end_byte - child.start_byte + len(current_chunk) > MAX_CHARS:
+                chunks.append(current_chunk)
+                current_chunk = Span(child.start_byte, child.end_byte)
+            else:
+                current_chunk += Span(child.start_byte, child.end_byte)
+        chunks.append(current_chunk)
+        return chunks
+    chunks = chunk_node(tree.root_node)
+ 
+    # 2. Filling in the gaps
+    for prev, curr in zip(chunks[:-1], chunks[1:]):
+        prev.end = curr.start
+    curr.start = tree.root_node.end_byte
+ 
+    # 3. Combining small chunks with bigger ones
+    new_chunks = []
+    current_chunk = Span(0, 0)
+    for chunk in chunks:
+        current_chunk += chunk
+        if non_whitespace_len(current_chunk.extract(source_code)) > coalesce \
+            and "\n" in current_chunk.extract(source_code):
+            new_chunks.append(current_chunk)
+            current_chunk = Span(chunk.end, chunk.end)
+    if len(current_chunk) > 0:
+        new_chunks.append(current_chunk)
+ 
+    # 4. Changing line numbers
+    line_chunks = [Span(get_line_number(chunk.start, source_code),
+                    get_line_number(chunk.end, source_code)) for chunk in new_chunks]
+ 
+    # 5. Eliminating empty chunks
+    line_chunks = [chunk for chunk in line_chunks if len(chunk) > 0]
+ 
+    return line_chunks
+```
+
 ### 度量体系设计
 
 #### 常用指标
