@@ -17,11 +17,17 @@ jobs:
       - name: create file list
         id: files_list
         run: |
+          mkdir output
           echo "files=$(printf '"%s" ' *.md)" > $GITHUB_OUTPUT
       - uses: docker://pandoc/latex:2.9
         with:
-          args: --output=output/build-your-ai-coding-assistant.pdf ${{ steps.files_list.outputs.files }}
-      - uses: actions/upload-artifact@v3
+          args: --output=output/build-your-ai-coding-assistant.docx ${{ steps.files_list.outputs.files }}
+
+      - name: Upload assets to release
+        uses: svenstaro/upload-release-action@v2
         with:
-          name: output
-          path: output
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: output/build-your-ai-coding-assistant.docx
+          tag: ${{ github.ref }}
+          overwrite: true
+          file_glob: true
