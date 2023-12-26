@@ -211,7 +211,7 @@ GitHub Copilot 采用了相似上下文的架构模式，其精略的架构分�
 - 服务端（Server）。处理 prompt 请求，并交给 LLM 服务端处理。
 
 在 “公开” 的 [Copilot-Explorer](https://github.com/thakkarparth007/copilot-explorer) 项目的研究资料里，可以看到 Prompt
-是如何构建出来的。如下是发送到的 prompt 请求：：
+是如何构建出来的。如下是发送到的 prompt 请求：
 
 ```json
 {
@@ -323,7 +323,7 @@ BlogService 类信息，作为上下文（在注释中提供）提供给模型�
 IDE、编辑器作为开发者的主要工具，其设计和学习成本也相对比较高。首先，我们可以用官方提供的模板生成：
 
 - [IDEA 插件模板](https://github.com/JetBrains/intellij-platform-plugin-template)
-- [VSCode 插件模板](https://code.visualstudio.com/api/get-started/your-first-extension)
+- [VSCode 插件生成](https://code.visualstudio.com/api/get-started/your-first-extension)
 
 然后，再往上添加功能（是不是很简单），当然不是。以下是一些可以参考的 IDEA 插件资源：
 
@@ -418,6 +418,61 @@ class AutoDevEditorListener : EditorFactoryListener {
     <add-to-group group-id="ShowIntentionsGroup" relative-to-action="ShowIntentionActions" anchor="after"/>
 </group>
 ```
+
+#### 多语言上下文架构
+
+由于 Intellij 的平台策略，使得运行于 Java IDE（Intellij IDEA）与在其它 IDE 如 Python
+IDE（Pycharm）之间的差异性变得更大。我们需要提供基于多平台产品的兼容性，详细介绍可以参考：[Plugin Compatibility with IntelliJ Platform Products](https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html)
+
+首先，将插件的架构进一步模块化，即针对于不同的语言，提供不同的模块。如下是 AutoDev 的模块化架构：
+
+```bash
+java/   # Java 语言插件
+  src/main/java/cc/unitmesh/autodev/ # Java 语言入口
+  src/main/resources/META-INF/plugin.xml
+plugin/ # 多平台入口
+  src/main/resources/META-INF/plugin.xml
+src/    # 即核心模块
+  main/resource/META-INF/core.plugin.xml
+```
+
+在 `plugin/plugin.xml` 中，我们需要添加对应的 `depends`，以及 `extensions`，如下是一个示例：
+
+```xml
+<idea-plugin package="cc.unitmesh" xmlns:xi="http://www.w3.org/2001/XInclude" allow-bundled-update="true">
+    <xi:include href="/META-INF/core.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <content>
+        <module name="cc.unitmesh.java"/>
+            <!--  其它模块 -->
+    </content>
+</idea-plugin>
+```
+
+而在 `java/plugin.xml` 中，我们需要添加对应的 `depends`，以及 `extensions`，如下是一个示例：
+
+```xml
+<idea-plugin package="cc.unitmesh.java">
+  <!--suppress PluginXmlValidity -->
+  <dependencies>
+    <plugin id="com.intellij.modules.java"/>
+    <plugin id="org.jetbrains.plugins.gradle"/>
+  </dependencies>
+</idea-plugin>
+```
+
+随后，Intellij 会自动加载对应的模块，以实现多语言的支持。根据我们预期支持的不同语言，便需要对应的 `plugin.xml`，诸如于：
+
+```bash
+cc.unitmesh.javascript.xml
+cc.unitmesh.rust.xml
+cc.unitmesh.python.xml
+cc.unitmesh.kotlin.xml
+cc.unitmesh.java.xml
+cc.unitmesh.go.xml
+cc.unitmesh.cpp.xml
+```
+
+最后，在不同的语言模块里，实现对应的功能即可。
 
 ### 上下文构建
 
@@ -742,7 +797,7 @@ fun filterByThreshold(job: InstructionFileJob) {
         return
     }
 
-  // like js minified file
+    // like js minified file
     if (summary.binary || summary.generated || summary.minified) {
         return
     }
@@ -768,7 +823,7 @@ fun filterByThreshold(job: InstructionFileJob) {
 }
 ```
 
-在过虑之后，我们就可以由不同语言的 Worker 来进行处理，诸如  JavaWorker、PythonWorker 等。
+在过虑之后，我们就可以由不同语言的 Worker 来进行处理，诸如 JavaWorker、PythonWorker 等。
 
 ```kotlin
 val lists = jobs.map { job ->
@@ -801,7 +856,7 @@ SimilarChunksStrategyBuilder 主要逻辑如下
 1. 使用配置中指定的规则检查以识别存在问题的数据结构。
 2. 收集所有具有相似数据结构的数据结构。
 3. 为每个被识别的数据结构中的函数构建完成生成器。
-4. 过滤掉具有空的前置和后置光标的完成生成器。 
+4. 过滤掉具有空的前置和后置光标的完成生成器。
 5. 使用JavaSimilarChunker计算块补全的相似块。
 6. 为每个完成生成器创建SimilarChunkIns对象，包括语言、前置光标、相似块、后置光标、输出和类型的相关信息。
 7. 返回生成的SimilarChunkIns对象的列表。
