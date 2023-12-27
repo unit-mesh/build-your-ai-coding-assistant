@@ -855,9 +855,13 @@ if __name__ == "__main__":
 
 由 Unit Eval + OSS Instruct 数据集构建而来：
 
-- 3000 条补全（Inline，InBlock，AfterBlock）数据集。
-- 1500 条单元测试数据集。
-- 4000 条 OSS Instruct 数据集。
+- 150 条补全（Inline，InBlock，AfterBlock）数据集。
+- 150 条单元测试数据集。
+- 3700 条 OSS Instruct 数据集。
+
+而从结果来看，如何保持高质量的数据是最大的挑战。
+
+测试视频：[开源 AI 辅助编程方案：Unit Mesh 端到端打通 v0.0.1 版本](https://www.bilibili.com/video/BV1si4y1h7Vw/)
 
 #### 参数示例：
 
