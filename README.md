@@ -862,18 +862,23 @@ if __name__ == "__main__":
 #### 参数示例：
 
 ```bash
+DATA_PATH="/openbayes/home/summary.jsonl"
+OUTPUT_PATH="/openbayes/home/output"
+
+MODEL_PATH="/openbayes/input/input0/"
+
 !cd DeepSeek-Coder/finetune && deepspeed finetune_deepseekcoder.py \
     --model_name_or_path $MODEL_PATH \
     --data_path $DATA_PATH \
     --output_dir $OUTPUT_PATH \
     --num_train_epochs 1 \
     --model_max_length 1024 \
-    --per_device_train_batch_size 2 \
+    --per_device_train_batch_size 8 \
     --per_device_eval_batch_size 1 \
     --gradient_accumulation_steps 1 \
     --evaluation_strategy "no" \
     --save_strategy "steps" \
-    --save_steps 2000 \
+    --save_steps 375 \
     --save_total_limit 10 \
     --learning_rate 1e-4 \
     --warmup_steps 10 \
@@ -889,25 +894,17 @@ if __name__ == "__main__":
 
 ```bash
 `use_cache=True` is incompatible with gradient checkpointing. Setting `use_cache=False`...
-  0%|                                                  | 0/2125 [00:00<?, ?it/s]`use_cache=True` is incompatible with gradient checkpointing. Setting `use_cache=False`...
-{'loss': 3.9356, 'learning_rate': 0.0, 'epoch': 0.0}                            
-{'loss': 0.8462, 'learning_rate': 3.0102999566398115e-05, 'epoch': 0.0}         
-{'loss': 0.909, 'learning_rate': 4.771212547196624e-05, 'epoch': 0.0}           
-{'loss': 0.3674, 'learning_rate': 6.020599913279623e-05, 'epoch': 0.0}          
-{'loss': 0.3959, 'learning_rate': 6.989700043360187e-05, 'epoch': 0.0}          
-{'loss': 0.7964, 'learning_rate': 7.781512503836436e-05, 'epoch': 0.0}          
-{'loss': 0.3542, 'learning_rate': 8.450980400142567e-05, 'epoch': 0.0}          
-{'loss': 1.7094, 'learning_rate': 9.030899869919434e-05, 'epoch': 0.0}          
-{'loss': 0.5968, 'learning_rate': 9.542425094393248e-05, 'epoch': 0.0}          
-{'loss': 0.6208, 'learning_rate': 9.999999999999999e-05, 'epoch': 0.0}          
-{'loss': 0.4074, 'learning_rate': 0.0001, 'epoch': 0.01}                        
-{'loss': 0.3637, 'learning_rate': 0.0001, 'epoch': 0.01}                        
-{'loss': 0.3459, 'learning_rate': 0.0001, 'epoch': 0.01}                        
-{'loss': 0.6971, 'learning_rate': 0.0001, 'epoch': 0.01}                        
-{'loss': 0.3917, 'learning_rate': 0.0001, 'epoch': 0.01}                        
-{'loss': 0.5859, 'learning_rate': 0.0001, 'epoch': 0.01}                        
-{'loss': 0.5923, 'learning_rate': 0.0001, 'epoch': 0.01}                        
-  1%|▎                                     | 17/2125 [05:14<10:03:38, 17.18s/it]
+  0%|                                                   | 0/375 [00:00<?, ?it/s]`use_cache=True` is incompatible with gradient checkpointing. Setting `use_cache=False`...
+{'loss': 0.6934, 'learning_rate': 0.0, 'epoch': 0.0}                            
+{'loss': 0.3086, 'learning_rate': 3.0102999566398115e-05, 'epoch': 0.01}        
+{'loss': 0.3693, 'learning_rate': 4.771212547196624e-05, 'epoch': 0.01}         
+{'loss': 0.3374, 'learning_rate': 6.020599913279623e-05, 'epoch': 0.01}         
+{'loss': 0.4744, 'learning_rate': 6.989700043360187e-05, 'epoch': 0.01}         
+{'loss': 0.3465, 'learning_rate': 7.781512503836436e-05, 'epoch': 0.02}         
+{'loss': 0.4258, 'learning_rate': 8.450980400142567e-05, 'epoch': 0.02}         
+{'loss': 0.4027, 'learning_rate': 9.030899869919434e-05, 'epoch': 0.02}         
+{'loss': 0.2844, 'learning_rate': 9.542425094393248e-05, 'epoch': 0.02}         
+{'loss': 0.3783, 'learning_rate': 9.999999999999999e-05, 'epoch': 0.03}   
 ```
 
 其它：
