@@ -940,6 +940,7 @@ MODEL_PATH="/openbayes/input/input0/"
 ```
 git init .
 git lfs track "*.safetensors"
+git add .gitattributes 
 
 git add .
 git commit -m "First model version"
