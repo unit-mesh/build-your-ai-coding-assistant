@@ -851,7 +851,7 @@ if __name__ == "__main__":
 
 ![Finetune Model Choice](images/finetune-model-choice.jpg)
 
-#### 数据集信息
+#### 数据集示例 1
 
 由 Unit Eval + OSS Instruct 数据集构建而来：
 
@@ -862,6 +862,21 @@ if __name__ == "__main__":
 而从结果来看，如何保持高质量的数据是最大的挑战。
 
 测试视频：[开源 AI 辅助编程方案：Unit Mesh 端到端打通 v0.0.1 版本](https://www.bilibili.com/video/BV1si4y1h7Vw/)
+
+在 Unit Eval [0.3.2](https://github.com/unit-mesh/unit-eval/releases/tag/v0.3.2) 版本里
+
+组成如下：
+
+```python
+# Merge and shuffle records from different files
+merge_jsonl(
+    output_file=merged_file,
+    input_files=[oss_instruction, 'code_bugfix_cleaned_5K.json', 'codeGPT_CN_cleaned_20K.json',
+                 'code_summarization_CN_cleaned_10K.json', 'java-code-completion.jsonl', 'java-test-gen.jsonl',
+                 'kotlin-completion-11929.jsonl', 'kotlin-java-comments-3715.jsonl'],
+    lines_per_file=[4000, 4000, 15000, 8000, 5000, 3000, 3000, 2000 ]
+)
+```
 
 #### 参数示例：
 
