@@ -721,7 +721,18 @@ AI 生成的代码被开发者入库的比例。
 
 ## 步骤 2：模型评估体系与微调试验
 
-评估数据集：[HumanEval](https://github.com/openai/human-eval)
+主流的论文和评估数据集以 [HumanEval](https://github.com/openai/human-eval) 为主，而我们想构建的是面向企业用途的编码模型。所以，我们暂时
+不会针对于这个数据集进行评估，而是结合我们的业务场景，来构建对应的评估体系。
+
+简单来说，HumanEval 以 Python 语言为主，导致各种模型、数据集在 Python 能力强，而像 Java 的能力弱、少。所以，我们在持续优化自身的数据集，
+并构建更好的数据工程。
+
+我们的微调模型下载：
+
+- [https://huggingface.co/unit-mesh/autodev-deepseek-6.7b-finetunes](https://huggingface.co/unit-mesh/autodev-deepseek-6.7b-finetunes)
+- OpenBayes: [deepseek-coder-6.7b-instruct-finetune](https://openbayes.com/console/phodal/models/rCmer1KQSgp/9/overview)
+
+由于我们使用的是国内云 GPU，受限于网络问题，我们在 HuggingFace 上的模型更新速度比较慢（有时速度慢，就懒得更新了）。
 
 ### 模型选择与测试
 
