@@ -931,6 +931,21 @@ MODEL_PATH="/openbayes/input/input0/"
 - 详细的 Notebook 见：[code/finetune/finetune.ipynb](code/finetune/finetune.ipynb)
 - 微调参数，详细见：[Trainer](https://huggingface.co/docs/transformers/v4.36.1/zh/main_classes/trainer)
 
+### 发布模型
+
+发布到 [Huggingface](https://huggingface.co/docs/hub/repositories-getting-started) 
+
+先配置 lfs：`git lfs install`
+
+```
+git init .
+git lfs track "*.safetensors"
+
+git add .
+git commit -m "First model version"
+git push
+```
+
 ## 步骤 3：围绕意图的数据工程与模型演进
 
 ![Unit Tools Workflow](https://unitmesh.cc/uniteval/overview.png)
