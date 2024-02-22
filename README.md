@@ -1,4 +1,4 @@
-# [构建你自己的 AI 辅助编码助手](https://github.com/phodal/build-ai-coding-assistant)
+# [构建你自己的 AI 辅助编码助手](https://unit-mesh.github.io/build-your-ai-coding-assistant/)
 
 ![Cover](images/cover.jpeg)
 
