@@ -5,9 +5,10 @@
 2023 年，生成式 AI 的火爆，让越来越多的组织开始引入 AI 辅助编码。与在 2021 年发布的 GitHub Copilot 稍有差异的是，代码补全只是众多场景中的一个。
 大量的企业内部在探索结合需求生成完整代码、代码审查等场景，也引入生成式 AI，来提升开发效率。
 
-在这个背景下，我们（Thoughtworks）也开发了一系列的开源工具，以帮助更多的组织构建自己的 AI 辅助编码助手：
+在这个背景下，我们（Thoughtworks 开源社区）也开源了一系列的 AI 辅助工具，以帮助更多的组织构建自己的 AI 辅助编码助手：
 
-- [AutoDev](https://github.com/unit-mesh/auto-dev)，基于 JetBrains 平台的全流程 AI 辅助编码工具。
+- [AutoDev for Intellij](https://github.com/unit-mesh/auto-dev)，基于 JetBrains 平台的全流程 AI 辅助编码工具。
+- [AutoDev for VSCode](https://github.com/unit-mesh/auto-dev-vscode)，基于 VSCode 编辑器的全流程 AI 辅助编码工具。
 - [Unit Eval](https://github.com/unit-mesh/unit-eval)，代码补全场景下的高质量数据集构建与生成工具。
 - [Unit Minions](https://github.com/unit-mesh/unit-minions)，在需求生成、测试生成等测试场景下，基于数据蒸馏的数据集构建工具。
 
@@ -20,7 +21,7 @@
 也因此，这个教程也是围绕于这三个步骤展开的。 除此，基于我们的经验，本教程的示例技术栈：
 
 - 插件：Intellij IDEA。AutoDev 是基于 Intellij IDEA 构建的，并且自带静态代码分析能力，所以基于它作为示例。我们也提供了 VSCode
-  插件的参考架构，你可以在这个基础上进行开发。
+  插件版本：[AutoDev for VSCode](https://github.com/unit-mesh/auto-dev-vscode)，你可以在这个基础上进行开发。
 - 模型：[DeepSeek Coder 6.7b](https://huggingface.co/deepseek-ai/deepseek-coder-6.7b-instruct)。基于 Llama 2 架构，与 Llama
   生态兼容
 - 微调：Deepspeed + 官方脚本 + Unit Eval。
