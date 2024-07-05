@@ -1,4 +1,4 @@
-# [AI 研发提效：构建你自己的 AI 辅助编码助手](https://unit-mesh.github.io/build-your-ai-coding-assistant/)
+# [AI 研发提效：构建 AI 辅助编码助手](https://unit-mesh.github.io/build-your-ai-coding-assistant/)
 
 ![Cover](images/cover.jpeg)
 
